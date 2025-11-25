@@ -17,7 +17,7 @@ EduBridge AI is a comprehensive educational platform designed to address educati
 - 📚 **Personalized Learning**: AI adapts to each student's strengths, weaknesses, and curriculum
 - 👨‍🏫 **Teacher Support**: AI-powered tools for lesson planning and student management
 - 🌐 **Offline-First**: Works without stable internet - crucial for African contexts
-- 💰 **Affordable**: Free tier for all, premium features at African pricing (KES 500/month)
+- 💰 **Affordable**: Free tier for all, premium features at African pricing (KES 200/month)
 - 🏫 **Community-Driven**: Connect students and teachers across Africa
 
 ---
