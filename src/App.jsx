@@ -12,17 +12,18 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from './utils/firebase';
 import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
+import Navbar from './components/Navbar';
 import './index.css';
 
 // --- Full lists ---
 const AFRICAN_COUNTRIES = [
-  'Algeria','Angola','Benin','Botswana','Burkina Faso','Burundi','Cameroon','Cape Verde',
-  'Central African Republic','Chad','Comoros','Republic of the Congo','Democratic Republic of the Congo',
-  'Djibouti','Egypt','Equatorial Guinea','Eritrea','Eswatini','Ethiopia','Gabon','Gambia','Ghana',
-  'Guinea','Guinea-Bissau','Ivory Coast','Kenya','Lesotho','Liberia','Libya','Madagascar','Malawi',
-  'Mali','Mauritania','Mauritius','Morocco','Mozambique','Namibia','Niger','Nigeria','Rwanda',
-  'Sao Tome and Principe','Senegal','Seychelles','Sierra Leone','Somalia','South Africa','South Sudan',
-  'Sudan','Tanzania','Togo','Tunisia','Uganda','Zambia','Zimbabwe'
+  'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
+  'Central African Republic', 'Chad', 'Comoros', 'Republic of the Congo', 'Democratic Republic of the Congo',
+  'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana',
+  'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi',
+  'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda',
+  'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan',
+  'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
 ];
 
 const EDUCATIONAL_SYSTEMS = [
@@ -47,9 +48,9 @@ const EDUCATIONAL_SYSTEMS = [
 ];
 
 const AFRICAN_LANGUAGES = [
-  'English','French','Arabic','Swahili','Hausa','Amharic','Yoruba','Igbo','Portuguese',
-  'Akan (Twi)','Oromo','Shona','Zulu','Xhosa','Wolof','Kinyarwanda','Kirundi','Sesotho',
-  'Tswana','Tigrinya','Somali','Berber (Tamazight)','Afrikaans','Lingala','Fula','Chichewa'
+  'English', 'French', 'Arabic', 'Swahili', 'Hausa', 'Amharic', 'Yoruba', 'Igbo', 'Portuguese',
+  'Akan (Twi)', 'Oromo', 'Shona', 'Zulu', 'Xhosa', 'Wolof', 'Kinyarwanda', 'Kirundi', 'Sesotho',
+  'Tswana', 'Tigrinya', 'Somali', 'Berber (Tamazight)', 'Afrikaans', 'Lingala', 'Fula', 'Chichewa'
 ];
 
 export default function AuthApp() {
@@ -282,6 +283,18 @@ export default function AuthApp() {
     setStep(1);
   };
 
+  const handleNavigate = (view) => {
+    if (view === 'home') {
+      setShowWelcome(true);
+    } else if (view === 'dashboard') {
+      setShowWelcome(false);
+    } else if (view === 'login') {
+      setShowWelcome(false);
+      setStep(1);
+      setIsLogin(true);
+    }
+  };
+
   // --- Theming ---
   const bg = "bg-[#f9fdf9]";
   const card = "bg-white border border-green-100 shadow-lg";
@@ -294,19 +307,22 @@ export default function AuthApp() {
   // --- Initial Welcome screen ---
   if (showWelcome) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${bg} px-6`}>
-        {/* <div className={`max-w-xl ${card} p-8 rounded-xl text-center`}> */}
-        <div className={`max-w-xl ${card} p-10 rounded-2xl shadow-lg text-center`}>
-          <h1 className="text-3xl font-bold mb-4 text-[#2e7d32]">Welcome to EduBridge Africa</h1>
-          <p className="text-gray-700 mb-6">
-            EduBridge Africa is a web application designed to connect teachers and students across Africa, helping learners access tailored educational resources and support. Please login or sign up with your email to continue.
-          </p>
-          <button
-            className={`px-6 py-3 rounded ${accent}`}
-            onClick={() => setShowWelcome(false)}
-          >
-            Continue
-          </button>
+      <div className="min-h-screen flex flex-col">
+        <Navbar user={user} role={userRole} onLogout={handleLogout} onNavigate={handleNavigate} />
+        <div className={`flex-grow flex items-center justify-center ${bg} px-6`}>
+          {/* <div className={`max-w-xl ${card} p-8 rounded-xl text-center`}> */}
+          <div className={`max-w-xl ${card} p-10 rounded-2xl shadow-lg text-center`}>
+            <h1 className="text-3xl font-bold mb-4 text-[#2e7d32]">Welcome to EduBridge Africa</h1>
+            <p className="text-gray-700 mb-6">
+              EduBridge Africa is a web application designed to connect teachers and students across Africa, helping learners access tailored educational resources and support. Please login or sign up with your email to continue.
+            </p>
+            <button
+              className={`px-6 py-3 rounded ${accent}`}
+              onClick={() => setShowWelcome(false)}
+            >
+              Continue
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -326,131 +342,144 @@ export default function AuthApp() {
 
   // --- Dashboard routing ---
   if (user && userProfile && userRole === 'student')
-    return <StudentDashboard user={user} studentProfile={userProfile} onLogout={handleLogout} />;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar user={user} role={userRole} onLogout={handleLogout} onNavigate={handleNavigate} />
+        <StudentDashboard user={user} studentProfile={userProfile} onLogout={handleLogout} />
+      </div>
+    );
   if (user && userProfile && userRole === 'teacher')
-    return <TeacherDashboard user={user} teacherProfile={userProfile} onLogout={handleLogout} />;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar user={user} role={userRole} onLogout={handleLogout} onNavigate={handleNavigate} />
+        <TeacherDashboard user={user} teacherProfile={userProfile} onLogout={handleLogout} />
+      </div>
+    );
 
   // --- Step 1: Auth screen ---
   if (!user && step === 1) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${bg} px-4`}>
-       {/* <div className={`flex justify-center items-center min-h-screen ${bg} px-4`}> */}
-        {/* <div className={`w-full max-w-md ${card} p-8 rounded-2xl`}> */}
+      <div className="min-h-screen flex flex-col">
+        <Navbar user={user} role={userRole} onLogout={handleLogout} onNavigate={handleNavigate} />
+        <div className={`flex-grow flex items-center justify-center ${bg} px-4`}>
+          {/* <div className={`flex justify-center items-center min-h-screen ${bg} px-4`}> */}
+          {/* <div className={`w-full max-w-md ${card} p-8 rounded-2xl`}> */}
           <div className={`w-full max-w-lg ${card} p-4 rounded-2xl shadow-lg`}>
-          <h2 className={`text-3xl font-bold text-center mb-6 ${heading}`}>
-            {isLogin ? 'Sign In' : 'Sign Up'}
-          </h2>
-          
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-              {error}
-            </div>
-          )}
-          
-          {resetEmailSent && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
-              Password reset email sent!
-            </div>
-          )}
+            <h2 className={`text-3xl font-bold text-center mb-6 ${heading}`}>
+              {isLogin ? 'Sign In' : 'Sign Up'}
+            </h2>
 
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className={inputBase}
-                placeholder="Enter email"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className={inputBase}
-                placeholder="Enter password"
-              />
-            </div>
-
-            {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  I am a
-                </label>
-                <select
-                  value={role}
-                  onChange={e => setRole(e.target.value)}
-                  className={inputBase}
-                >
-                  <option value="student">Student</option>
-                  <option value="teacher">Teacher</option>
-                </select>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+                {error}
               </div>
             )}
-          </div>
 
-          {isLogin && (
-            <div className="mt-4 mb-6">
-              <button
-                onClick={handleForgotPassword}
-                className="text-white hover:text-[#43a047] font-medium text-sm"
-            
-              >
-                Forgot password?
-              </button>
+            {resetEmailSent && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
+                Password reset email sent!
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className={inputBase}
+                  placeholder="Enter email"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className={inputBase}
+                  placeholder="Enter password"
+                />
+              </div>
+
+              {!isLogin && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    I am a
+                  </label>
+                  <select
+                    value={role}
+                    onChange={e => setRole(e.target.value)}
+                    className={inputBase}
+                  >
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                  </select>
+                </div>
+              )}
             </div>
-          )}
 
-          <button
-            onClick={handleAuth}
-            disabled={loading}
-            className={`w-full py-2 mt-3 rounded-md font-medium ${accent} transition`}
-            // className={`w-full py-3 rounded-lg font-medium ${accent} transition-colors mt-6`}
-          >
-            {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Continue'}
-          </button>
+            {isLogin && (
+              <div className="mt-4 mb-6">
+                <button
+                  onClick={handleForgotPassword}
+                  className="text-white hover:text-[#43a047] font-medium text-sm"
 
-          <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-4 text-gray-500 text-sm">or</span>
-            <div className="flex-1 border-t border-gray-300"></div>
-          </div>
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-[#1b1b1b] font-medium transition-colors flex items-center justify-center gap-3"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            {loading ? 'Processing...' : 'Continue with Google'}
-          </button>
-
-          <p className="mt-6 text-sm text-white flex justify-center items-center gap-2">
-            {isLogin ? "Don't have an account?" : "Already have an account?"}
             <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError('');
-                setResetEmailSent(false);
-              }}
-             className="text-white hover:text-[#43a047] ml-2 font-semibold" 
+              onClick={handleAuth}
+              disabled={loading}
+              className={`w-full py-2 mt-3 rounded-md font-medium ${accent} transition`}
+            // className={`w-full py-3 rounded-lg font-medium ${accent} transition-colors mt-6`}
             >
-              {isLogin ? 'Sign Up' : 'Sign In'}
+              {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Continue'}
             </button>
-          </p>
+
+            <div className="flex items-center my-6">
+              <div className="flex-1 border-t border-gray-300"></div>
+              <span className="px-4 text-gray-500 text-sm">or</span>
+              <div className="flex-1 border-t border-gray-300"></div>
+            </div>
+
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-[#1b1b1b] font-medium transition-colors flex items-center justify-center gap-3"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              {loading ? 'Processing...' : 'Continue with Google'}
+            </button>
+
+            <p className="mt-6 text-sm text-white flex justify-center items-center gap-2">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}
+              <button
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError('');
+                  setResetEmailSent(false);
+                }}
+                className="text-white hover:text-[#43a047] ml-2 font-semibold"
+              >
+                {isLogin ? 'Sign Up' : 'Sign In'}
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -459,37 +488,40 @@ export default function AuthApp() {
   // --- Step 2: Role selection ---
   if (user && step === 2) {
     return (
-      <div
-       className={`min-h-screen flex items-center justify-center ${bg} px-4`}>
-      {/* <div className={`flex justify-center items-center min-h-screen ${bg} px-4`}> */}
-        {/* <div className={`w-full max-w-md ${card} p-8 rounded-2xl`}> */}
-        <div className={`w-full max-w-md ${card} p-6 rounded-2xl shadow-lg`}>
-          <h2 className={`text-2xl font-bold text-center mb-6 ${heading}`}>Select Your Role</h2>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-              {error}
+      <div className="min-h-screen flex flex-col">
+        <Navbar user={user} role={userRole} onLogout={handleLogout} onNavigate={handleNavigate} />
+        <div
+          className={`flex-grow flex items-center justify-center ${bg} px-4`}>
+          {/* <div className={`flex justify-center items-center min-h-screen ${bg} px-4`}> */}
+          {/* <div className={`w-full max-w-md ${card} p-8 rounded-2xl`}> */}
+          <div className={`w-full max-w-md ${card} p-6 rounded-2xl shadow-lg`}>
+            <h2 className={`text-2xl font-bold text-center mb-6 ${heading}`}>Select Your Role</h2>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+                {error}
+              </div>
+            )}
+            <div className="flex gap-4 mb-6">
+              <button
+                onClick={() => handleRoleSelection('student')}
+                className={`flex-1 px-6 py-3 rounded-lg font-medium ${accent} transition-colors`}
+              >
+                Student
+              </button>
+              <button
+                onClick={() => handleRoleSelection('teacher')}
+                className={`flex-1 px-6 py-3 rounded-lg font-medium ${accent} transition-colors`}
+              >
+                Teacher
+              </button>
             </div>
-          )}
-          <div className="flex gap-4 mb-6">
             <button
-              onClick={() => handleRoleSelection('student')}
-              className={`flex-1 px-6 py-3 rounded-lg font-medium ${accent} transition-colors`}
+              onClick={handleLogout}
+              className="w-full py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-white font-medium transition-colors"
             >
-              Student
-            </button>
-            <button
-              onClick={() => handleRoleSelection('teacher')}
-              className={`flex-1 px-6 py-3 rounded-lg font-medium ${accent} transition-colors`}
-            >
-              Teacher
+              Back
             </button>
           </div>
-          <button
-            onClick={handleLogout}
-          className="w-full py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-white font-medium transition-colors"
-          >
-            Back
-          </button>
         </div>
       </div>
     );
@@ -499,153 +531,156 @@ export default function AuthApp() {
   if (step === 3 && selectedRoleForProfile) {
     const isStudent = selectedRoleForProfile === 'student';
     return (
-      <div className={`min-h-screen flex items-center justify-center ${bg} px-4`}>
-      {/* <div className={`flex justify-center items-center min-h-screen ${bg} px-4 py-8`}> */}
-        {/* <div className={`w-full max-w-md ${card} p-8 rounded-2xl`}> */}
-        <div className={`w-full max-w-md ${card} p-6 rounded-2xl shadow-lg`}>
-          <h2 className={`text-2xl font-bold text-center mb-6 ${heading}`}>
-            {isStudent ? 'Student Profile' : 'Teacher Profile'}
-          </h2>
-          
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-              {error}
-            </div>
-          )}
+      <div className="min-h-screen flex flex-col">
+        <Navbar user={user} role={userRole} onLogout={handleLogout} onNavigate={handleNavigate} />
+        <div className={`flex-grow flex items-center justify-center ${bg} px-4`}>
+          {/* <div className={`flex justify-center items-center min-h-screen ${bg} px-4 py-8`}> */}
+          {/* <div className={`w-full max-w-md ${card} p-8 rounded-2xl`}> */}
+          <div className={`w-full max-w-md ${card} p-6 rounded-2xl shadow-lg`}>
+            <h2 className={`text-2xl font-bold text-center mb-6 ${heading}`}>
+              {isStudent ? 'Student Profile' : 'Teacher Profile'}
+            </h2>
 
-          <div className="space-y-4">
-            {isStudent ? (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    value={studentData.name}
-                    onChange={e => setStudentData({ ...studentData, name: e.target.value })}
-                    className={inputBase}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                  <select
-                    value={studentData.country}
-                    onChange={e => setStudentData({ ...studentData, country: e.target.value })}
-                    className={inputBase}
-                  >
-                    <option value="">Select country</option>
-                    {AFRICAN_COUNTRIES.map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Educational System</label>
-                  <select
-                    value={studentData.educationalSystem}
-                    onChange={e => setStudentData({ ...studentData, educationalSystem: e.target.value })}
-                    className={inputBase}
-                  >
-                    <option value="">Select system</option>
-                    {EDUCATIONAL_SYSTEMS.map(s => <option key={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
-                  <select
-                    value={studentData.languageProficiency}
-                    onChange={e => setStudentData({ ...studentData, languageProficiency: e.target.value })}
-                    className={inputBase}
-                  >
-                    <option value="">Select language</option>
-                    {AFRICAN_LANGUAGES.map(l => <option key={l}>{l}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Strengths</label>
-                  <textarea
-                    value={studentData.strengths}
-                    onChange={e => setStudentData({ ...studentData, strengths: e.target.value })}
-                    className={inputBase}
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Areas for Improvement</label>
-                  <textarea
-                    value={studentData.weaknesses}
-                    onChange={e => setStudentData({ ...studentData, weaknesses: e.target.value })}
-                    className={inputBase}
-                    rows={3}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    value={teacherData.name}
-                    onChange={e => setTeacherData({ ...teacherData, name: e.target.value })}
-                    className={inputBase}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                  <select
-                    value={teacherData.country}
-                    onChange={e => setTeacherData({ ...teacherData, country: e.target.value })}
-                    className={inputBase}
-                  >
-                    <option value="">Select country</option>
-                    {AFRICAN_COUNTRIES.map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Educational System</label>
-                  <select
-                    value={teacherData.educationalSystem}
-                    onChange={e => setTeacherData({ ...teacherData, educationalSystem: e.target.value })}
-                    className={inputBase}
-                  >
-                    <option value="">Select system</option>
-                    {EDUCATIONAL_SYSTEMS.map(s => <option key={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject Area</label>
-                  <input
-                    type="text"
-                    value={teacherData.subjectArea}
-                    onChange={e => setTeacherData({ ...teacherData, subjectArea: e.target.value })}
-                    className={inputBase}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Info</label>
-                  <input
-                    type="text"
-                    value={teacherData.contactInfo}
-                    onChange={e => setTeacherData({ ...teacherData, contactInfo: e.target.value })}
-                    className={inputBase}
-                  />
-                </div>
-              </>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+                {error}
+              </div>
             )}
+
+            <div className="space-y-4">
+              {isStudent ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input
+                      type="text"
+                      value={studentData.name}
+                      onChange={e => setStudentData({ ...studentData, name: e.target.value })}
+                      className={inputBase}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <select
+                      value={studentData.country}
+                      onChange={e => setStudentData({ ...studentData, country: e.target.value })}
+                      className={inputBase}
+                    >
+                      <option value="">Select country</option>
+                      {AFRICAN_COUNTRIES.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Educational System</label>
+                    <select
+                      value={studentData.educationalSystem}
+                      onChange={e => setStudentData({ ...studentData, educationalSystem: e.target.value })}
+                      className={inputBase}
+                    >
+                      <option value="">Select system</option>
+                      {EDUCATIONAL_SYSTEMS.map(s => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                    <select
+                      value={studentData.languageProficiency}
+                      onChange={e => setStudentData({ ...studentData, languageProficiency: e.target.value })}
+                      className={inputBase}
+                    >
+                      <option value="">Select language</option>
+                      {AFRICAN_LANGUAGES.map(l => <option key={l}>{l}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Strengths</label>
+                    <textarea
+                      value={studentData.strengths}
+                      onChange={e => setStudentData({ ...studentData, strengths: e.target.value })}
+                      className={inputBase}
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Areas for Improvement</label>
+                    <textarea
+                      value={studentData.weaknesses}
+                      onChange={e => setStudentData({ ...studentData, weaknesses: e.target.value })}
+                      className={inputBase}
+                      rows={3}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input
+                      type="text"
+                      value={teacherData.name}
+                      onChange={e => setTeacherData({ ...teacherData, name: e.target.value })}
+                      className={inputBase}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <select
+                      value={teacherData.country}
+                      onChange={e => setTeacherData({ ...teacherData, country: e.target.value })}
+                      className={inputBase}
+                    >
+                      <option value="">Select country</option>
+                      {AFRICAN_COUNTRIES.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Educational System</label>
+                    <select
+                      value={teacherData.educationalSystem}
+                      onChange={e => setTeacherData({ ...teacherData, educationalSystem: e.target.value })}
+                      className={inputBase}
+                    >
+                      <option value="">Select system</option>
+                      {EDUCATIONAL_SYSTEMS.map(s => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Subject Area</label>
+                    <input
+                      type="text"
+                      value={teacherData.subjectArea}
+                      onChange={e => setTeacherData({ ...teacherData, subjectArea: e.target.value })}
+                      className={inputBase}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Contact Info</label>
+                    <input
+                      type="text"
+                      value={teacherData.contactInfo}
+                      onChange={e => setTeacherData({ ...teacherData, contactInfo: e.target.value })}
+                      className={inputBase}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={handleProfileSubmit}
+              disabled={loading}
+              className={`w-full py-3 mt-6 rounded-lg font-medium ${accent} transition-colors`}
+            >
+              {loading ? 'Saving...' : 'Save Profile'}
+            </button>
+
+            <button
+              onClick={() => setStep(2)}
+              className="w-full py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-white font-medium transition-colors"
+            >
+              Back
+            </button>
           </div>
-
-          <button
-            onClick={handleProfileSubmit}
-            disabled={loading}
-            className={`w-full py-3 mt-6 rounded-lg font-medium ${accent} transition-colors`}
-          >
-            {loading ? 'Saving...' : 'Save Profile'}
-          </button>
-
-          <button
-            onClick={() => setStep(2)}
-            className="w-full py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-white font-medium transition-colors"
-          >
-            Back
-          </button>
         </div>
       </div>
     );

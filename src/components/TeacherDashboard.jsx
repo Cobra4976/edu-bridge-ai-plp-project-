@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase';
 import { cacheAIResponse, getCachedAIResponses, clearOldCache } from "../utils/pwaHelpers";
-import { 
-  hasFeatureAccess, 
-  canMakeAIQuery, 
+import {
+  hasFeatureAccess,
+  canMakeAIQuery,
   incrementQueryCount,
   getDaysRemaining,
   isSubscriptionExpired,
@@ -78,11 +78,13 @@ export default function TeacherDashboard({ user, teacherProfile: initialProfile 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
+
   // Install prompt state
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  
+
 
   const educationalSystems = {
     "Kenya": ["CBC (Competency-Based Curriculum)", "8-4-4 System (Legacy)"],
@@ -166,67 +168,67 @@ export default function TeacherDashboard({ user, teacherProfile: initialProfile 
     "community": "Connect teachers with professional networks and development opportunities in their country",
     "offline": "Access offline features and manage cached content for use without internet connection"
   };
- // Subscription state
+  // Subscription state
   const [queryCheck, setQueryCheck] = useState({ canQuery: true, remaining: -1, message: '' });
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false); 
-// Community state
-const [communityPosts, setCommunityPosts] = useState([]);
-const [showCreatePost, setShowCreatePost] = useState(false);
-const [newPost, setNewPost] = useState({
-  type: POST_TYPES.DISCUSSION,
-  title: '',
-  content: '',
-  resourceLink: '',
-  tags: []
-});
-const [communityFilters, setCommunityFilters] = useState({
-  country: '',
-  subject: '',
-  postType: ''
-});
-const [selectedPost, setSelectedPost] = useState(null);
-const [postComments, setPostComments] = useState([]);
-const [newComment, setNewComment] = useState('');
-const [isSubmittingPost, setIsSubmittingPost] = useState(false);
-// Trial activation state
-const [isActivatingTrial, setIsActivatingTrial] = useState(false);
-const [schoolData, setSchoolData] = useState(null);
-const [schoolTeachers, setSchoolTeachers] = useState([]);
-const [schoolStats, setSchoolStats] = useState(null);
-const [inviteLink, setInviteLink] = useState('');
-const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
-const [isLoadingSchool, setIsLoadingSchool] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  // Community state
+  const [communityPosts, setCommunityPosts] = useState([]);
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [newPost, setNewPost] = useState({
+    type: POST_TYPES.DISCUSSION,
+    title: '',
+    content: '',
+    resourceLink: '',
+    tags: []
+  });
+  const [communityFilters, setCommunityFilters] = useState({
+    country: '',
+    subject: '',
+    postType: ''
+  });
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [postComments, setPostComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false);
+  // Trial activation state
+  const [isActivatingTrial, setIsActivatingTrial] = useState(false);
+  const [schoolData, setSchoolData] = useState(null);
+  const [schoolTeachers, setSchoolTeachers] = useState([]);
+  const [schoolStats, setSchoolStats] = useState(null);
+  const [inviteLink, setInviteLink] = useState('');
+  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
+  const [isLoadingSchool, setIsLoadingSchool] = useState(false);
 
-// Subscribe to community posts
-useEffect(() => {
-  if (activeTab === 'community') {
-    const unsubscribe = subscribeToCommunityPosts(communityFilters, (posts) => {
-      setCommunityPosts(posts);
-    });
-    
-    return () => unsubscribe();
-  }
-}, [activeTab, communityFilters]);
+  // Subscribe to community posts
+  useEffect(() => {
+    if (activeTab === 'community') {
+      const unsubscribe = subscribeToCommunityPosts(communityFilters, (posts) => {
+        setCommunityPosts(posts);
+      });
 
-// Subscribe to comments when a post is selected
-useEffect(() => {
-  if (selectedPost) {
-    const unsubscribe = subscribeToComments(selectedPost.id, (comments) => {
-      setPostComments(comments);
-    });
-    
-    return () => unsubscribe();
-  }
-}, [selectedPost]);
+      return () => unsubscribe();
+    }
+  }, [activeTab, communityFilters]);
+
+  // Subscribe to comments when a post is selected
+  useEffect(() => {
+    if (selectedPost) {
+      const unsubscribe = subscribeToComments(selectedPost.id, (comments) => {
+        setPostComments(comments);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [selectedPost]);
   // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      
+
     };
     const handleOffline = () => {
       setIsOnline(false);
-      
+
     };
 
     window.addEventListener('online', handleOnline);
@@ -274,12 +276,12 @@ useEffect(() => {
 
     installPrompt.prompt();
     const { outcome } = await installPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
-      
+
       setShowInstallButton(false);
     }
-    
+
     setInstallPrompt(null);
   };
 
@@ -344,7 +346,7 @@ useEffect(() => {
       if (expired && (teacherProfile.subscriptionStatus === STATUS.TRIAL || teacherProfile.subscriptionStatus === STATUS.ACTIVE)) {
         // Subscription expired - would normally update in Firestore here
         // For now, just update local state
-        
+
       }
     }
   }, [teacherProfile]);
@@ -367,14 +369,14 @@ useEffect(() => {
         email: profileData.email || user?.email || "",
         updatedAt: new Date().toISOString(),
         // Initialize subscription fields if they don't exist
-      subscriptionTier: profileData.subscriptionTier || TIERS.FREE,
-      subscriptionStatus: STATUS.ACTIVE,
-      subscriptionExpiry: profileData.subscriptionExpiry || null,
-      trialUsed: profileData.trialUsed || false,
-      dailyQueryCount: profileData.dailyQueryCount || 0,
-      lastQueryDate: profileData.lastQueryDate || "",
-      timezone: profileData.timezone || "Africa/Nairobi",
-     
+        subscriptionTier: profileData.subscriptionTier || TIERS.FREE,
+        subscriptionStatus: STATUS.ACTIVE,
+        subscriptionExpiry: profileData.subscriptionExpiry || null,
+        trialUsed: profileData.trialUsed || false,
+        dailyQueryCount: profileData.dailyQueryCount || 0,
+        lastQueryDate: profileData.lastQueryDate || "",
+        timezone: profileData.timezone || "Africa/Nairobi",
+
       };
 
       await setDoc(teacherRef, updatedProfile, { merge: true });
@@ -388,32 +390,32 @@ useEffect(() => {
       setIsSaving(false);
     }
   };
-const generateAIResponse = async (prompt, contextType) => {
-  if (!prompt || !prompt.trim()) {
-    alert("Please enter a question or request.");
-    return;
-  }
+  const generateAIResponse = async (prompt, contextType) => {
+    if (!prompt || !prompt.trim()) {
+      alert("Please enter a question or request.");
+      return;
+    }
 
-  // Check if user can make a query (subscription + daily limit check)
-  const checkResult = await canMakeAIQuery(
-    user.uid, 
-    teacherProfile.subscriptionTier || TIERS.FREE,
-    teacherProfile.subscriptionStatus || STATUS.ACTIVE
-  );
-  
-  if (!checkResult.canQuery) {
-    setShowUpgradeModal(true);
-    alert(checkResult.message);
-    return;
-  }
+    // Check if user can make a query (subscription + daily limit check)
+    const checkResult = await canMakeAIQuery(
+      user.uid,
+      teacherProfile.subscriptionTier || TIERS.FREE,
+      teacherProfile.subscriptionStatus || STATUS.ACTIVE
+    );
 
-  setAiLoading(true);
-  setAiResponse("");
+    if (!checkResult.canQuery) {
+      setShowUpgradeModal(true);
+      alert(checkResult.message);
+      return;
+    }
 
-  const curriculumDetails = curriculumKnowledge[teacherProfile.educationalSystem] || {};
-  const contextDescription = tabContexts[contextType] || "";
+    setAiLoading(true);
+    setAiResponse("");
 
-  const systemPrompt = `You are EduBridge AI — an expert teaching assistant built to empower African educators and support SDG 4 (Quality Education).
+    const curriculumDetails = curriculumKnowledge[teacherProfile.educationalSystem] || {};
+    const contextDescription = tabContexts[contextType] || "";
+
+    const systemPrompt = `You are EduBridge AI — an expert teaching assistant built to empower African educators and support SDG 4 (Quality Education).
 
 TEACHER PROFILE:
 - Name: ${teacherProfile.name}
@@ -452,7 +454,7 @@ IMPORTANT GUIDELINES:
 
 Your responses should be well-structured with bullet points, short paragraphs, and clear sections for easy scanning.`;
 
-  const userPrompt = `${prompt}
+    const userPrompt = `${prompt}
 
 Please provide comprehensive guidance considering:
 - I teach ${teacherProfile.subjectArea} to ${teacherProfile.gradeLevel} students
@@ -460,187 +462,187 @@ Please provide comprehensive guidance considering:
 - I'm in ${teacherProfile.country}
 - Context: ${contextDescription}`;
 
-  try {
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-    
-    const response = await fetch(`${BACKEND_URL}/api/gemini`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemPrompt, userPrompt, maxTokens: 4096 })
-    });
+    try {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `API Error: ${response.status}`);
-    }
+      const response = await fetch(`${BACKEND_URL}/api/gemini`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ systemPrompt, userPrompt, maxTokens: 4096 })
+      });
 
-    const data = await response.json();
-    const aiMessage = data.content?.[0]?.text || data.response || "No response received from Gemini.";
-    setAiResponse(aiMessage);
-
-    // Increment query count for free tier
-    await incrementQueryCount(
-      user.uid, 
-      teacherProfile.subscriptionTier || TIERS.FREE
-    );
-    
-    // Update query check display
-    const newCheck = await canMakeAIQuery(
-      user.uid, 
-      teacherProfile.subscriptionTier || TIERS.FREE,
-      teacherProfile.subscriptionStatus || STATUS.ACTIVE
-    );
-    setQueryCheck(newCheck);
-
-    // Cache the response for offline access
-    const cacheKey = `${contextType}-${Date.now()}`;
-    const cacheData = {
-      prompt: prompt,
-      response: aiMessage,
-      context: contextType,
-      profile: {
-        country: teacherProfile.country,
-        system: teacherProfile.educationalSystem,
-        subject: teacherProfile.subjectArea,
-        grade: teacherProfile.gradeLevel
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `API Error: ${response.status}`);
       }
-    };
-    
-    cacheAIResponse(cacheKey, cacheData);
-    
-  } catch (err) {
-    console.error("Claude API Error:", err);
-    setAiResponse(`⚠️ Error: ${err.message}`);
-  } finally {
-    setAiLoading(false);
-  }
-};
-  
 
-// Load query check when accessing AI tabs
+      const data = await response.json();
+      const aiMessage = data.content?.[0]?.text || data.response || "No response received from Gemini.";
+      setAiResponse(aiMessage);
+
+      // Increment query count for free tier
+      await incrementQueryCount(
+        user.uid,
+        teacherProfile.subscriptionTier || TIERS.FREE
+      );
+
+      // Update query check display
+      const newCheck = await canMakeAIQuery(
+        user.uid,
+        teacherProfile.subscriptionTier || TIERS.FREE,
+        teacherProfile.subscriptionStatus || STATUS.ACTIVE
+      );
+      setQueryCheck(newCheck);
+
+      // Cache the response for offline access
+      const cacheKey = `${contextType}-${Date.now()}`;
+      const cacheData = {
+        prompt: prompt,
+        response: aiMessage,
+        context: contextType,
+        profile: {
+          country: teacherProfile.country,
+          system: teacherProfile.educationalSystem,
+          subject: teacherProfile.subjectArea,
+          grade: teacherProfile.gradeLevel
+        }
+      };
+
+      cacheAIResponse(cacheKey, cacheData);
+
+    } catch (err) {
+      console.error("Claude API Error:", err);
+      setAiResponse(`⚠️ Error: ${err.message}`);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+
+  // Load query check when accessing AI tabs
   useEffect(() => {
     if (['ai-assistant', 'student-progress', 'assignments'].includes(activeTab)) {
       canMakeAIQuery(
-        user?.uid, 
+        user?.uid,
         teacherProfile.subscriptionTier || TIERS.FREE,
         teacherProfile.subscriptionStatus || STATUS.ACTIVE
       ).then(setQueryCheck);
     }
   }, [activeTab, user, teacherProfile]);
- // Add this useEffect to load school data when admin views the tab 
-useEffect(() => {
-  if (activeTab === 'school-management' && 
-      teacherProfile.schoolRole === 'admin' && 
+  // Add this useEffect to load school data when admin views the tab 
+  useEffect(() => {
+    if (activeTab === 'school-management' &&
+      teacherProfile.schoolRole === 'admin' &&
       teacherProfile.schoolId) {
-    loadSchoolData();
-  }
-}, [activeTab, teacherProfile.schoolRole, teacherProfile.schoolId]); // ✅ Watch these specific fields
+      loadSchoolData();
+    }
+  }, [activeTab, teacherProfile.schoolRole, teacherProfile.schoolId]); // ✅ Watch these specific fields
 
 
-const loadSchoolData = async () => {
-  
-  
-  setIsLoadingSchool(true);
-  
-  try {
-    // ✅ Get fresh profile from Firestore first
-    const teacherRef = doc(db, "teachers", user.uid);
-    const snap = await getDoc(teacherRef);
-    
-    if (!snap.exists()) {
-      console.error('❌ Teacher profile not found');
-      setIsLoadingSchool(false);
-      return;
-    }
-    
-    const freshProfile = snap.data();
-    
-    console.log('📊 Fresh profile data:', {
-      schoolId: freshProfile.schoolId,
-      schoolRole: freshProfile.schoolRole
-    });
-    
-    if (!freshProfile.schoolId) {
-      console.error('❌ No schoolId in profile');
-      setIsLoadingSchool(false);
-      return;
-    }
-    
-    // ✅ Use fresh profile data for API call
-    const result = await getSchoolDetails(freshProfile.schoolId, user.uid);
-    
-    if (result.success) {
-      setSchoolData(result.school);
-      setSchoolTeachers(result.teachers);
-      
-      // Load stats
-      const statsResult = await getSchoolStats(freshProfile.schoolId);
-      if (statsResult.success) {
-        setSchoolStats(statsResult.stats);
+  const loadSchoolData = async () => {
+
+
+    setIsLoadingSchool(true);
+
+    try {
+      // ✅ Get fresh profile from Firestore first
+      const teacherRef = doc(db, "teachers", user.uid);
+      const snap = await getDoc(teacherRef);
+
+      if (!snap.exists()) {
+        console.error('❌ Teacher profile not found');
+        setIsLoadingSchool(false);
+        return;
       }
-      
-      console.log('✅ School data loaded successfully');
-    } else {
-      console.error('❌ Failed to load school:', result.error);
-      alert('Failed to load school data: ' + result.error);
+
+      const freshProfile = snap.data();
+
+      console.log('📊 Fresh profile data:', {
+        schoolId: freshProfile.schoolId,
+        schoolRole: freshProfile.schoolRole
+      });
+
+      if (!freshProfile.schoolId) {
+        console.error('❌ No schoolId in profile');
+        setIsLoadingSchool(false);
+        return;
+      }
+
+      // ✅ Use fresh profile data for API call
+      const result = await getSchoolDetails(freshProfile.schoolId, user.uid);
+
+      if (result.success) {
+        setSchoolData(result.school);
+        setSchoolTeachers(result.teachers);
+
+        // Load stats
+        const statsResult = await getSchoolStats(freshProfile.schoolId);
+        if (statsResult.success) {
+          setSchoolStats(statsResult.stats);
+        }
+
+        console.log('✅ School data loaded successfully');
+      } else {
+        console.error('❌ Failed to load school:', result.error);
+        alert('Failed to load school data: ' + result.error);
+      }
+    } catch (error) {
+      console.error('❌ Error loading school:', error);
+      alert('Error loading school: ' + error.message);
+    } finally {
+      setIsLoadingSchool(false);
     }
-  } catch (error) {
-    console.error('❌ Error loading school:', error);
-    alert('Error loading school: ' + error.message);
-  } finally {
-    setIsLoadingSchool(false);
-  }
-};
+  };
 
 
-const handleGenerateInvite = async () => {
-  setIsGeneratingInvite(true);
-  try {
-    const result = await generateInviteCode(user.uid);
-    
-    if (result.success) {
-      setInviteLink(result.inviteLink);
-      alert('✅ Invite link generated! Copy it to share with teachers.');
-    } else {
-      alert('❌ Failed to generate invite: ' + result.error);
+  const handleGenerateInvite = async () => {
+    setIsGeneratingInvite(true);
+    try {
+      const result = await generateInviteCode(user.uid);
+
+      if (result.success) {
+        setInviteLink(result.inviteLink);
+        alert('✅ Invite link generated! Copy it to share with teachers.');
+      } else {
+        alert('❌ Failed to generate invite: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error generating invite:', error);
+      alert('❌ Error: ' + error.message);
+    } finally {
+      setIsGeneratingInvite(false);
     }
-  } catch (error) {
-    console.error('Error generating invite:', error);
-    alert('❌ Error: ' + error.message);
-  } finally {
-    setIsGeneratingInvite(false);
-  }
-};
+  };
 
-const handleCopyInviteLink = async () => {
-  const success = await copyInviteLink(inviteLink);
-  if (success) {
-    alert('✅ Invite link copied to clipboard!');
-  } else {
-    alert('❌ Failed to copy. Please copy manually.');
-  }
-};
-
-const handleRemoveTeacher = async (teacherId, teacherName) => {
-  if (!confirm(`Remove ${teacherName} from your school license?\n\nThey will be downgraded to free tier immediately.`)) {
-    return;
-  }
-
-  try {
-    const result = await removeTeacherFromSchool(user.uid, teacherId);
-    
-    if (result.success) {
-      alert(`✅ ${teacherName} removed from school`);
-      // Reload school data
-      await loadSchoolData();
+  const handleCopyInviteLink = async () => {
+    const success = await copyInviteLink(inviteLink);
+    if (success) {
+      alert('✅ Invite link copied to clipboard!');
     } else {
-      alert('❌ Failed to remove teacher: ' + result.error);
+      alert('❌ Failed to copy. Please copy manually.');
     }
-  } catch (error) {
-    console.error('Error removing teacher:', error);
-    alert('❌ Error: ' + error.message);
-  }
-};
+  };
+
+  const handleRemoveTeacher = async (teacherId, teacherName) => {
+    if (!confirm(`Remove ${teacherName} from your school license?\n\nThey will be downgraded to free tier immediately.`)) {
+      return;
+    }
+
+    try {
+      const result = await removeTeacherFromSchool(user.uid, teacherId);
+
+      if (result.success) {
+        alert(`✅ ${teacherName} removed from school`);
+        // Reload school data
+        await loadSchoolData();
+      } else {
+        alert('❌ Failed to remove teacher: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error removing teacher:', error);
+      alert('❌ Error: ' + error.message);
+    }
+  };
 
   const handleLogout = async () => {
     if (onLogout) {
@@ -706,7 +708,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
         <button
           onClick={handleLogout}
           disabled={isLoggingOut}
-         className={`px-4 sm:px-6 py-2 rounded-lg font-medium transition text-sm sm:text-base ${isLoggingOut ? "bg-gray-400 cursor-not-allowed text-white" : primaryBg}`} 
+          className={`px-4 sm:px-6 py-2 rounded-lg font-medium transition text-sm sm:text-base ${isLoggingOut ? "bg-gray-400 cursor-not-allowed text-white" : primaryBg}`}
         >
           {isLoggingOut ? 'Signing out...' : 'Sign Out'}
         </button>
@@ -714,7 +716,60 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
 
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-6">
-          <nav className="flex space-x-1 overflow-x-auto scrollbar-hide pb-2">
+          {/* Mobile Hamburger Button */}
+          <div className="md:hidden flex justify-between items-center py-3">
+            <span className="font-bold text-gray-700">Menu</span>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-600 hover:text-[#2e7d32] focus:outline-none"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Menu Dropdown */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden flex flex-col space-y-2 pb-4">
+              {[
+                { id: "overview", label: "Overview", icon: "📊" },
+                { id: "profile", label: "Profile", icon: "👤" },
+                { id: "ai-assistant", label: "AI Assistant", icon: "🤖" },
+                { id: "student-progress", label: "Student Progress", icon: "📈" },
+                { id: "assignments", label: "Assignments", icon: "📝" },
+                { id: "community", label: "Teacher Community", icon: "👥" },
+                { id: "offline", label: "Offline", icon: "📡" },
+                { id: "subscription", label: "Subscription", icon: "💳" },
+                { id: "school-management", label: "School Management", icon: "🏫" }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setIsMobileMenuOpen(false);
+                    setAiResponse("");
+                    setAiPrompt("");
+                    setSelectedCachedResponse(null);
+                  }}
+                  className={`px-4 py-3 text-left font-medium rounded-lg transition ${activeTab === tab.id
+                    ? "bg-green-50 text-[#2e7d32]"
+                    : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                >
+                  <span className="mr-3">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Desktop Tabs (Hidden on Mobile) */}
+          <nav className="hidden md:flex space-x-1 overflow-x-auto scrollbar-hide pb-2 sm:pb-0">
             {[
               { id: "overview", label: "Overview", icon: "📊" },
               { id: "profile", label: "Profile", icon: "👤" },
@@ -729,7 +784,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
               //  ...(teacherProfile?.schoolRole === 'admin' ? [
               //  { id: "school-management", label: "School Management", icon: "🏫" }
               //   ] : [])
-  ].map((tab) => (
+            ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => {
@@ -738,7 +793,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
                   setAiPrompt("");
                   setSelectedCachedResponse(null);
                 }}
-                className={`px-4 py-3 font-medium transition whitespace-nowrap text-sm ${activeTab === tab.id ? "border-b-2 border-[#2e7d32] text-[#2e7d32]" : "text-gray-600 hover:text-[#2e7d32]" }`}
+                className={`px-3 sm:px-4 py-3 font-medium transition whitespace-nowrap text-sm sm:text-base ${activeTab === tab.id ? "border-b-2 border-[#2e7d32] text-[#2e7d32]" : "text-gray-600 hover:text-[#2e7d32]"}`}
               >
                 <span className="mr-2">{tab.icon}</span>
                 {tab.label}
@@ -804,7 +859,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
         )}
 
         {activeTab === "profile" && (
-          <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+          <div className="max-w-3xl mx-auto bg-white p-4 sm:p-8 rounded-xl shadow-lg">
             <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">👤 Edit Profile</h2>
             <div className="space-y-5">
               <div>
@@ -867,88 +922,88 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
               )}
             </div>
           </div>
-         )}
-         {activeTab === "ai-assistant" && (
-    <div className="max-w-4xl mx-auto bg-white p-4 sm:p-8 rounded-xl shadow-lg">
-    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-      🤖 AI Teaching Assistant
-    </h2>
+        )}
+        {activeTab === "ai-assistant" && (
+          <div className="max-w-4xl mx-auto bg-white p-4 sm:p-8 rounded-xl shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+              🤖 AI Teaching Assistant
+            </h2>
 
-    <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6">
-      <p className="text-sm text-green-800">
-        <strong>Your Context:</strong> {teacherProfile.subjectArea} teacher • {teacherProfile.gradeLevel} • {teacherProfile.country} • {teacherProfile.educationalSystem}
-      </p>
-      {queryCheck.remaining >= 0 && (
-        <p className="text-sm text-green-800 mt-2">
-          <strong>Queries remaining today:</strong> {queryCheck.remaining}
-        </p>
-      )}
-      {queryCheck.remaining === -1 && (
-        <p className="text-sm text-green-800 mt-2">
-          <strong>✨ Unlimited queries</strong> (Teacher Pro)
-        </p>
-      )}
-    </div>
+            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6">
+              <p className="text-sm text-green-800">
+                <strong>Your Context:</strong> {teacherProfile.subjectArea} teacher • {teacherProfile.gradeLevel} • {teacherProfile.country} • {teacherProfile.educationalSystem}
+              </p>
+              {queryCheck.remaining >= 0 && (
+                <p className="text-sm text-green-800 mt-2">
+                  <strong>Queries remaining today:</strong> {queryCheck.remaining}
+                </p>
+              )}
+              {queryCheck.remaining === -1 && (
+                <p className="text-sm text-green-800 mt-2">
+                  <strong>✨ Unlimited queries</strong> (Teacher Pro)
+                </p>
+              )}
+            </div>
 
-    <textarea
-      placeholder="Ask Edubridge AI about lesson planning... Example: 'Create a lesson plan for teaching fractions' or 'How do I support struggling learners?'"
-      value={aiPrompt}
-      onChange={(e) => setAiPrompt(e.target.value)}
-      className="w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 mb-4 focus:ring-2 focus:ring-[#2e7d32] outline-none min-h-[100px] sm:min-h-[120px] text-sm sm:text-base text-gray-700"   
-      />
+            <textarea
+              placeholder="Ask Edubridge AI about lesson planning... Example: 'Create a lesson plan for teaching fractions' or 'How do I support struggling learners?'"
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 mb-4 focus:ring-2 focus:ring-[#2e7d32] outline-none min-h-[100px] sm:min-h-[120px] text-sm sm:text-base text-gray-700"
+            />
 
-    <button 
-      onClick={() => generateAIResponse(aiPrompt, 'ai-assistant')} 
-      disabled={aiLoading || !isOnline}
-     className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base"
-    >
-      {!isOnline ? "🔌 Offline - AI Unavailable" : aiLoading ? "🤔 EduBridge is thinking..." : "✨ Ask Edubridge AI"}
-    </button>
+            <button
+              onClick={() => generateAIResponse(aiPrompt, 'ai-assistant')}
+              disabled={aiLoading || !isOnline}
+              className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base"
+            >
+              {!isOnline ? "🔌 Offline - AI Unavailable" : aiLoading ? "🤔 EduBridge is thinking..." : "✨ Ask Edubridge AI"}
+            </button>
 
-    {!isOnline && (
-      <div className="mt-4 p-4 bg-orange-50 border-l-4 border-orange-500 rounded text-sm text-orange-800">
-        ⚠️ You're currently offline. AI features require an internet connection. Check the Offline tab for cached content.
-      </div>
-    )}
+            {!isOnline && (
+              <div className="mt-4 p-4 bg-orange-50 border-l-4 border-orange-500 rounded text-sm text-orange-800">
+                ⚠️ You're currently offline. AI features require an internet connection. Check the Offline tab for cached content.
+              </div>
+            )}
 
-    {queryCheck.remaining === 0 && (
-      <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded text-sm text-yellow-800">
-        <p className="font-semibold mb-2">Daily limit reached!</p>
-        <p className="mb-3">You've used all 10 free queries today. Upgrade to Teacher Pro for unlimited access!</p>
-        <button
-          onClick={() => setActiveTab('subscription')}
-          className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-        >
-          Upgrade to Pro - $2/month
-        </button>
-      </div>
-    )}
+            {queryCheck.remaining === 0 && (
+              <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded text-sm text-yellow-800">
+                <p className="font-semibold mb-2">Daily limit reached!</p>
+                <p className="mb-3">You've used all 10 free queries today. Upgrade to Teacher Pro for unlimited access!</p>
+                <button
+                  onClick={() => setActiveTab('subscription')}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                >
+                  Upgrade to Pro - $2/month
+                </button>
+              </div>
+            )}
 
-    {aiResponse && (
-      <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg mt-6 text-gray-800">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="text-2xl">🤖</div>
-          <div className="font-semibold text-green-700">Edubridge AI's Response:</div>
-        </div>
-        <div className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed">
-          {aiResponse}
-        </div>
-      </div>
-    )}
+            {aiResponse && (
+              <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg mt-6 text-gray-800">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="text-2xl">🤖</div>
+                  <div className="font-semibold text-green-700">Edubridge AI's Response:</div>
+                </div>
+                <div className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed">
+                  {aiResponse}
+                </div>
+              </div>
+            )}
 
-    {!aiResponse && !aiLoading && isOnline && (
-      <div className="mt-6 p-4 bg-green-50 rounded-lg text-sm text-green-800">
-        <strong>💡 Tips for better results:</strong>
-        <ul className="list-disc list-inside mt-2 space-y-1">
-          <li>Be specific about your needs (e.g., topic, learning objectives)</li>
-          <li>Mention any constraints (time, resources, class size)</li>
-          <li>Ask for examples or step-by-step guidance</li>
-        </ul>
-      </div>
-    )}
-  </div>
-)}
- {activeTab === "student-progress" && (
+            {!aiResponse && !aiLoading && isOnline && (
+              <div className="mt-6 p-4 bg-green-50 rounded-lg text-sm text-green-800">
+                <strong>💡 Tips for better results:</strong>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Be specific about your needs (e.g., topic, learning objectives)</li>
+                  <li>Mention any constraints (time, resources, class size)</li>
+                  <li>Ask for examples or step-by-step guidance</li>
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+        {activeTab === "student-progress" && (
           <>
             {hasFeatureAccess(
               teacherProfile.subscriptionTier || TIERS.FREE,
@@ -980,7 +1035,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
                 )}
 
                 <button onClick={() => generateAIResponse(aiPrompt, 'student-progress')} disabled={aiLoading || !isOnline}
-                 className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base">
+                  className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base">
                   {!isOnline ? "🔌 Offline - AI Unavailable" : aiLoading ? "🤔 EduBridge is thinking..." : "✨ Ask Edubridge AI"}
                 </button>
 
@@ -1068,7 +1123,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
                   placeholder="Ask Edubridge AI about assignments... Example: 'Create a rubric for a science project' or 'Design a math worksheet on fractions'"
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 mb-4 focus:ring-2 focus:ring-[#2e7d32] outline-none min-h-[100px] sm:min-h-[120px] text-sm sm:text-base text-gray-700"                />
+                  className="w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 mb-4 focus:ring-2 focus:ring-[#2e7d32] outline-none min-h-[100px] sm:min-h-[120px] text-sm sm:text-base text-gray-700" />
 
                 {queryCheck.remaining >= 0 && (
                   <div className="mb-4 text-sm text-gray-600">
@@ -1077,7 +1132,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
                 )}
 
                 <button onClick={() => generateAIResponse(aiPrompt, 'assignments')} disabled={aiLoading || !isOnline}
-                 className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base"> 
+                  className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base">
                   {!isOnline ? "🔌 Offline - AI Unavailable" : aiLoading ? "🤔 EduBridge is thinking..." : "✨ Ask Edubridge AI"}
                 </button>
 
@@ -1142,410 +1197,408 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
           </>
         )}
         {activeTab === "community" && (
-  <div className="max-w-5xl mx-auto">
-    <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">👥 Teacher Community</h2>
-        <button
-          onClick={() => setShowCreatePost(!showCreatePost)}
-          className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 py-2 rounded-lg font-medium transition"
-        >
-          {showCreatePost ? '✕ Cancel' : '✏️ Create Post'}
-        </button>
-      </div>
-
-      <p className="text-gray-600 text-sm mb-4">
-        Connect with fellow teachers across East Africa. Share ideas, resources, and support each other!
-      </p>
-      {/* OFFLINE WARNING - ADD THIS */}
-      {!isOnline && (
-        <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded mb-4">
-          <p className="text-sm text-orange-800 font-semibold">
-            📡 You're viewing cached posts from your last online session
-          </p>
-          <p className="text-xs text-orange-700 mt-1">
-            New posts and comments won't appear until you're back online. You cannot create posts or comment while offline.
-          </p>
-        </div>
-      )}
-
-
-      {/* Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 mb-6">
-        <select
-          value={communityFilters.postType}
-          onChange={(e) => setCommunityFilters(prev => ({ ...prev, postType: e.target.value }))}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2e7d32] outline-none"
-        >
-          <option value="">All Post Types</option>
-          <option value={POST_TYPES.QUESTION}>Questions</option>
-          <option value={POST_TYPES.RESOURCE}>Resources</option>
-          <option value={POST_TYPES.DISCUSSION}>Discussions</option>
-          <option value={POST_TYPES.SUCCESS_STORY}>Success Stories</option>
-        </select>
-
-        <select
-          value={communityFilters.country}
-          onChange={(e) => setCommunityFilters(prev => ({ ...prev, country: e.target.value }))}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2e7d32] outline-none"
-        >
-          <option value="">All Countries</option>
-          {Object.keys(educationalSystems).map(country => (
-            <option key={country} value={country}>{country}</option>
-          ))}
-        </select>
-
-        <select
-          value={communityFilters.subject}
-          onChange={(e) => setCommunityFilters(prev => ({ ...prev, subject: e.target.value }))}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2e7d32] outline-none"
-        >
-          <option value="">All Subjects</option>
-          <option value="Mathematics">Mathematics</option>
-          <option value="English">English</option>
-          <option value="Science">Science</option>
-          <option value="Social Studies">Social Studies</option>
-          <option value="Languages">Languages</option>
-          <option value="Arts">Arts</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      {/* Create Post Form */}
-      {showCreatePost && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
-          <h3 className="font-bold text-gray-800 mb-4">Create New Post</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Post Type</label>
-              <select
-                value={newPost.type}
-                onChange={(e) => setNewPost(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none"
-              >
-                <option value={POST_TYPES.DISCUSSION}>💬 Discussion</option>
-                <option value={POST_TYPES.QUESTION}>❓ Question</option>
-                <option value={POST_TYPES.RESOURCE}>📚 Resource</option>
-                <option value={POST_TYPES.SUCCESS_STORY}>⭐ Success Story</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
-              <input
-                type="text"
-                value={newPost.title}
-                onChange={(e) => setNewPost(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="What's on your mind?"
-                maxLength={150}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Content</label>
-              <textarea
-                value={newPost.content}
-                onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Share your thoughts, ask questions, or provide details..."
-                rows={5}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none"
-              />
-            </div>
-
-            {newPost.type === POST_TYPES.RESOURCE && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Resource Link (Google Drive / Dropbox)
-                </label>
-                <input
-                  type="url"
-                  value={newPost.resourceLink}
-                  onChange={(e) => setNewPost(prev => ({ ...prev, resourceLink: e.target.value }))}
-                  placeholder="https://drive.google.com/... or https://dropbox.com/..."
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Share a link to your lesson plan, worksheet, or teaching resource
-                </p>
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">👥 Teacher Community</h2>
+                <button
+                  onClick={() => setShowCreatePost(!showCreatePost)}
+                  className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 py-2 rounded-lg font-medium transition"
+                >
+                  {showCreatePost ? '✕ Cancel' : '✏️ Create Post'}
+                </button>
               </div>
-            )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={async () => {
-                  if (!newPost.title.trim() || !newPost.content.trim()) {
-                    alert('Please provide a title and content');
-                    return;
-                  }
-
-                  setIsSubmittingPost(true);
-                  const result = await createCommunityPost({
-                    userId: user.uid,
-                    authorName: teacherProfile.name,
-                    authorCountry: teacherProfile.country,
-                    authorSubject: teacherProfile.subjectArea,
-                    authorGrade: teacherProfile.gradeLevel,
-                    authorSystem: teacherProfile.educationalSystem,
-                    postType: newPost.type,
-                    title: newPost.title,
-                    content: newPost.content,
-                    resourceLink: newPost.resourceLink || null,
-                    tags: []
-                  });
-
-                  setIsSubmittingPost(false);
-
-                  if (result.success) {
-                    setNewPost({
-                      type: POST_TYPES.DISCUSSION,
-                      title: '',
-                      content: '',
-                      resourceLink: '',
-                      tags: []
-                    });
-                    setShowCreatePost(false);
-                    alert('Post created successfully!');
-                  } else {
-                    alert(result.message);
-                  }
-                }}
-                disabled={isSubmittingPost}
-                className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-6 py-2 rounded-lg font-medium transition disabled:bg-gray-400"
-              >
-                {isSubmittingPost ? 'Posting...' : 'Post to Community'}
-              </button>
-              <button
-                onClick={() => {
-                  setShowCreatePost(false);
-                  setNewPost({
-                    type: POST_TYPES.DISCUSSION,
-                    title: '',
-                    content: '',
-                    resourceLink: '',
-                    tags: []
-                  });
-                }}
-                className="border border-gray-300 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-
-    {/* Community Feed */}
-    <div className="space-y-4">
-      {communityPosts.length === 0 ? (
-        <div className="bg-white p-12 rounded-xl shadow text-center">
-          <div className="text-6xl mb-4">🌍</div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">No posts yet</h3>
-          <p className="text-gray-600 mb-4">
-            Be the first to share something with the community!
-          </p>
-          <button
-            onClick={() => setShowCreatePost(true)}
-           className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base" 
-          >
-            Create First Post
-          </button>
-        </div>
-      ) : (
-        communityPosts.map((post) => (
-          <div key={post.id} className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
-            {/* Post Header */}
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#2e7d32] rounded-full flex items-center justify-center text-white font-bold">
-                  {post.authorName?.charAt(0)?.toUpperCase()}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800">{post.authorName}</p>
-                  <p className="text-xs text-gray-500">
-                    {post.authorSubject} • {post.authorGrade} • {post.authorCountry}
+              <p className="text-gray-600 text-sm mb-4">
+                Connect with fellow teachers across East Africa. Share ideas, resources, and support each other!
+              </p>
+              {/* OFFLINE WARNING - ADD THIS */}
+              {!isOnline && (
+                <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded mb-4">
+                  <p className="text-sm text-orange-800 font-semibold">
+                    📡 You're viewing cached posts from your last online session
+                  </p>
+                  <p className="text-xs text-orange-700 mt-1">
+                    New posts and comments won't appear until you're back online. You cannot create posts or comment while offline.
                   </p>
                 </div>
+              )}
+
+
+              {/* Filters */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 mb-6">
+                <select
+                  value={communityFilters.postType}
+                  onChange={(e) => setCommunityFilters(prev => ({ ...prev, postType: e.target.value }))}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2e7d32] outline-none"
+                >
+                  <option value="">All Post Types</option>
+                  <option value={POST_TYPES.QUESTION}>Questions</option>
+                  <option value={POST_TYPES.RESOURCE}>Resources</option>
+                  <option value={POST_TYPES.DISCUSSION}>Discussions</option>
+                  <option value={POST_TYPES.SUCCESS_STORY}>Success Stories</option>
+                </select>
+
+                <select
+                  value={communityFilters.country}
+                  onChange={(e) => setCommunityFilters(prev => ({ ...prev, country: e.target.value }))}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2e7d32] outline-none"
+                >
+                  <option value="">All Countries</option>
+                  {Object.keys(educationalSystems).map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={communityFilters.subject}
+                  onChange={(e) => setCommunityFilters(prev => ({ ...prev, subject: e.target.value }))}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2e7d32] outline-none"
+                >
+                  <option value="">All Subjects</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="English">English</option>
+                  <option value="Science">Science</option>
+                  <option value="Social Studies">Social Studies</option>
+                  <option value="Languages">Languages</option>
+                  <option value="Arts">Arts</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
-              <div className="text-right">
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  post.postType === POST_TYPES.QUESTION ? 'bg-blue-100 text-blue-700' :
-                  post.postType === POST_TYPES.RESOURCE ? 'bg-green-100 text-green-700' :
-                  post.postType === POST_TYPES.SUCCESS_STORY ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-gray-100 text-gray-700'
-                }`}>
-                  {post.postType === POST_TYPES.QUESTION ? '❓ Question' :
-                   post.postType === POST_TYPES.RESOURCE ? '📚 Resource' :
-                   post.postType === POST_TYPES.SUCCESS_STORY ? '⭐ Success Story' :
-                   '💬 Discussion'}
-                </span>
-                <p className="text-xs text-gray-400 mt-1">{formatPostTime(post.createdAt)}</p>
-              </div>
-            </div>
 
-            {/* Post Content */}
-            <h3 className="font-bold text-gray-900 mb-2">{post.title}</h3>
-            <p className="text-gray-700 text-sm mb-3 whitespace-pre-wrap">{post.content}</p>
+              {/* Create Post Form */}
+              {showCreatePost && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
+                  <h3 className="font-bold text-gray-800 mb-4">Create New Post</h3>
 
-            {/* Resource Link */}
-            {post.resourceLink && (
-              <a
-                href={post.resourceLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-[#2e7d32] hover:text-[#43a047] font-medium mb-3"
-              >
-                <span>🔗</span>
-                View Resource
-              </a>
-            )}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Post Type</label>
+                      <select
+                        value={newPost.type}
+                        onChange={(e) => setNewPost(prev => ({ ...prev, type: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none"
+                      >
+                        <option value={POST_TYPES.DISCUSSION}>💬 Discussion</option>
+                        <option value={POST_TYPES.QUESTION}>❓ Question</option>
+                        <option value={POST_TYPES.RESOURCE}>📚 Resource</option>
+                        <option value={POST_TYPES.SUCCESS_STORY}>⭐ Success Story</option>
+                      </select>
+                    </div>
 
-            {/* Post Actions */}
-            <div className="flex items-center gap-4 pt-3 border-t border-gray-200">
-              <button
-              onClick={async () => {
-                if (!isOnline) {
-                  alert('Cannot like posts while offline');
-               return;
-              }
-              await toggleLikePost(post.id, user.uid);
-              }}
-               disabled={!isOnline}
-               className={`flex items-center gap-1 text-sm font-medium transition ${
-                !isOnline 
-               ? 'text-gray-400 cursor-not-allowed'
-             : post.likedBy?.includes(user.uid) 
-             ? 'text-red-600' 
-             : 'text-gray-600 hover:text-red-600'
-               }`}
->
-             <span>{post.likedBy?.includes(user.uid) ? '❤️' : '🤍'}</span>
-             <span>{post.likesCount || 0}</span>
-               
-            </button>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
+                      <input
+                        type="text"
+                        value={newPost.title}
+                        onChange={(e) => setNewPost(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="What's on your mind?"
+                        maxLength={150}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none"
+                      />
+                    </div>
 
-              <button
-                onClick={() => setSelectedPost(post)}
-                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-[#2e7d32] transition"
-              >
-                <span>💬</span>
-                <span>{post.commentsCount || 0} Comments</span>
-              </button>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Content</label>
+                      <textarea
+                        value={newPost.content}
+                        onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
+                        placeholder="Share your thoughts, ask questions, or provide details..."
+                        rows={5}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none"
+                      />
+                    </div>
 
-              <button
-                onClick={async () => {
-                  if (confirm('Flag this post as inappropriate?')) {
-                    await flagPost(post.id, user.uid);
-                    alert('Post flagged. Thank you for keeping our community safe!');
-                  }
-                }}
-                className="flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-red-600 transition ml-auto"
-              >
-                <span>🚩</span>
-                <span>Flag</span>
-              </button>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
+                    {newPost.type === POST_TYPES.RESOURCE && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Resource Link (Google Drive / Dropbox)
+                        </label>
+                        <input
+                          type="url"
+                          value={newPost.resourceLink}
+                          onChange={(e) => setNewPost(prev => ({ ...prev, resourceLink: e.target.value }))}
+                          placeholder="https://drive.google.com/... or https://dropbox.com/..."
+                          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Share a link to your lesson plan, worksheet, or teaching resource
+                        </p>
+                      </div>
+                    )}
 
-    {/* Comments Modal */}
-    {selectedPost && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          {/* Modal Header */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-900 text-lg">Comments</h3>
-              <button
-                onClick={() => {
-                  setSelectedPost(null);
-                  setNewComment('');
-                }}
-                className="text-gray-400 hover:text-gray-600 text-2xl"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={async () => {
+                          if (!newPost.title.trim() || !newPost.content.trim()) {
+                            alert('Please provide a title and content');
+                            return;
+                          }
 
-          {/* Original Post */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-[#2e7d32] rounded-full flex items-center justify-center text-white font-bold">
-                {selectedPost.authorName?.charAt(0)?.toUpperCase()}
-              </div>
-              <div>
-                <p className="font-semibold text-gray-800">{selectedPost.authorName}</p>
-                <p className="text-xs text-gray-500">{formatPostTime(selectedPost.createdAt)}</p>
-              </div>
-            </div>
-            <h3 className="font-bold text-gray-900 mb-2">{selectedPost.title}</h3>
-            <p className="text-gray-700 text-sm">{selectedPost.content}</p>
-          </div>
+                          setIsSubmittingPost(true);
+                          const result = await createCommunityPost({
+                            userId: user.uid,
+                            authorName: teacherProfile.name,
+                            authorCountry: teacherProfile.country,
+                            authorSubject: teacherProfile.subjectArea,
+                            authorGrade: teacherProfile.gradeLevel,
+                            authorSystem: teacherProfile.educationalSystem,
+                            postType: newPost.type,
+                            title: newPost.title,
+                            content: newPost.content,
+                            resourceLink: newPost.resourceLink || null,
+                            tags: []
+                          });
 
-          {/* Comments List */}
-          <div className="p-6 space-y-4">
-            {postComments.length === 0 ? (
-              <p className="text-gray-500 text-sm text-center py-8">No comments yet. Be the first to comment!</p>
-            ) : (
-              postComments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
-                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                    {comment.authorName?.charAt(0)?.toUpperCase()}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-800 text-sm">{comment.authorName}</p>
-                    <p className="text-gray-700 text-sm mt-1">{comment.content}</p>
-                    <p className="text-xs text-gray-400 mt-1">{formatPostTime(comment.createdAt)}</p>
+                          setIsSubmittingPost(false);
+
+                          if (result.success) {
+                            setNewPost({
+                              type: POST_TYPES.DISCUSSION,
+                              title: '',
+                              content: '',
+                              resourceLink: '',
+                              tags: []
+                            });
+                            setShowCreatePost(false);
+                            alert('Post created successfully!');
+                          } else {
+                            alert(result.message);
+                          }
+                        }}
+                        disabled={isSubmittingPost}
+                        className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-6 py-2 rounded-lg font-medium transition disabled:bg-gray-400"
+                      >
+                        {isSubmittingPost ? 'Posting...' : 'Post to Community'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowCreatePost(false);
+                          setNewPost({
+                            type: POST_TYPES.DISCUSSION,
+                            title: '',
+                            content: '',
+                            resourceLink: '',
+                            tags: []
+                          });
+                        }}
+                        className="border border-gray-300 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
-              ))
+              )}
+            </div>
+
+            {/* Community Feed */}
+            <div className="space-y-4">
+              {communityPosts.length === 0 ? (
+                <div className="bg-white p-12 rounded-xl shadow text-center">
+                  <div className="text-6xl mb-4">🌍</div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">No posts yet</h3>
+                  <p className="text-gray-600 mb-4">
+                    Be the first to share something with the community!
+                  </p>
+                  <button
+                    onClick={() => setShowCreatePost(true)}
+                    className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base"
+                  >
+                    Create First Post
+                  </button>
+                </div>
+              ) : (
+                communityPosts.map((post) => (
+                  <div key={post.id} className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
+                    {/* Post Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-[#2e7d32] rounded-full flex items-center justify-center text-white font-bold">
+                          {post.authorName?.charAt(0)?.toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800">{post.authorName}</p>
+                          <p className="text-xs text-gray-500">
+                            {post.authorSubject} • {post.authorGrade} • {post.authorCountry}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-xs px-2 py-1 rounded-full ${post.postType === POST_TYPES.QUESTION ? 'bg-blue-100 text-blue-700' :
+                          post.postType === POST_TYPES.RESOURCE ? 'bg-green-100 text-green-700' :
+                            post.postType === POST_TYPES.SUCCESS_STORY ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-gray-100 text-gray-700'
+                          }`}>
+                          {post.postType === POST_TYPES.QUESTION ? '❓ Question' :
+                            post.postType === POST_TYPES.RESOURCE ? '📚 Resource' :
+                              post.postType === POST_TYPES.SUCCESS_STORY ? '⭐ Success Story' :
+                                '💬 Discussion'}
+                        </span>
+                        <p className="text-xs text-gray-400 mt-1">{formatPostTime(post.createdAt)}</p>
+                      </div>
+                    </div>
+
+                    {/* Post Content */}
+                    <h3 className="font-bold text-gray-900 mb-2">{post.title}</h3>
+                    <p className="text-gray-700 text-sm mb-3 whitespace-pre-wrap">{post.content}</p>
+
+                    {/* Resource Link */}
+                    {post.resourceLink && (
+                      <a
+                        href={post.resourceLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-[#2e7d32] hover:text-[#43a047] font-medium mb-3"
+                      >
+                        <span>🔗</span>
+                        View Resource
+                      </a>
+                    )}
+
+                    {/* Post Actions */}
+                    <div className="flex items-center gap-4 pt-3 border-t border-gray-200">
+                      <button
+                        onClick={async () => {
+                          if (!isOnline) {
+                            alert('Cannot like posts while offline');
+                            return;
+                          }
+                          await toggleLikePost(post.id, user.uid);
+                        }}
+                        disabled={!isOnline}
+                        className={`flex items-center gap-1 text-sm font-medium transition ${!isOnline
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : post.likedBy?.includes(user.uid)
+                            ? 'text-red-600'
+                            : 'text-gray-600 hover:text-red-600'
+                          }`}
+                      >
+                        <span>{post.likedBy?.includes(user.uid) ? '❤️' : '🤍'}</span>
+                        <span>{post.likesCount || 0}</span>
+
+                      </button>
+
+                      <button
+                        onClick={() => setSelectedPost(post)}
+                        className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-[#2e7d32] transition"
+                      >
+                        <span>💬</span>
+                        <span>{post.commentsCount || 0} Comments</span>
+                      </button>
+
+                      <button
+                        onClick={async () => {
+                          if (confirm('Flag this post as inappropriate?')) {
+                            await flagPost(post.id, user.uid);
+                            alert('Post flagged. Thank you for keeping our community safe!');
+                          }
+                        }}
+                        className="flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-red-600 transition ml-auto"
+                      >
+                        <span>🚩</span>
+                        <span>Flag</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Comments Modal */}
+            {selectedPost && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  {/* Modal Header */}
+                  <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-gray-900 text-lg">Comments</h3>
+                      <button
+                        onClick={() => {
+                          setSelectedPost(null);
+                          setNewComment('');
+                        }}
+                        className="text-gray-400 hover:text-gray-600 text-2xl"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Original Post */}
+                  <div className="p-6 border-b border-gray-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-[#2e7d32] rounded-full flex items-center justify-center text-white font-bold">
+                        {selectedPost.authorName?.charAt(0)?.toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">{selectedPost.authorName}</p>
+                        <p className="text-xs text-gray-500">{formatPostTime(selectedPost.createdAt)}</p>
+                      </div>
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2">{selectedPost.title}</h3>
+                    <p className="text-gray-700 text-sm">{selectedPost.content}</p>
+                  </div>
+
+                  {/* Comments List */}
+                  <div className="p-6 space-y-4">
+                    {postComments.length === 0 ? (
+                      <p className="text-gray-500 text-sm text-center py-8">No comments yet. Be the first to comment!</p>
+                    ) : (
+                      postComments.map((comment) => (
+                        <div key={comment.id} className="flex gap-3">
+                          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                            {comment.authorName?.charAt(0)?.toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-800 text-sm">{comment.authorName}</p>
+                            <p className="text-gray-700 text-sm mt-1">{comment.content}</p>
+                            <p className="text-xs text-gray-400 mt-1">{formatPostTime(comment.createdAt)}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add Comment */}
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6">
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none mb-3"
+                    />
+                    <button
+                      onClick={async () => {
+                        if (!newComment.trim()) {
+                          alert('Please write a comment');
+                          return;
+                        }
+
+                        const result = await addComment(
+                          selectedPost.id,
+                          user.uid,
+                          teacherProfile.name,
+                          newComment
+                        );
+
+                        if (result.success) {
+                          setNewComment('');
+                        } else {
+                          alert(result.message);
+                        }
+                      }}
+                      className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-6 py-2 rounded-lg font-medium transition"
+                    >
+                      Post Comment
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
-
-          {/* Add Comment */}
-          <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Write a comment..."
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2e7d32] outline-none mb-3"
-            />
-            <button
-              onClick={async () => {
-                if (!newComment.trim()) {
-                  alert('Please write a comment');
-                  return;
-                }
-
-                const result = await addComment(
-                  selectedPost.id,
-                  user.uid,
-                  teacherProfile.name,
-                  newComment
-                );
-
-                if (result.success) {
-                  setNewComment('');
-                } else {
-                  alert(result.message);
-                }
-              }}
-              className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-6 py-2 rounded-lg font-medium transition"
-            >
-              Post Comment
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-)}{activeTab === "offline" && (
+        )}{activeTab === "offline" && (
           <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
             <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
               📡 Offline Mode
@@ -1556,8 +1609,8 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
                 {isOnline ? '✅ Currently Online' : '📡 Currently Offline'}
               </p>
               <p className="text-sm">
-                {isOnline 
-                  ? 'All features are available. Your profile and AI responses are being cached automatically.' 
+                {isOnline
+                  ? 'All features are available. Your profile and AI responses are being cached automatically.'
                   : 'Limited features available. You can access cached AI responses below.'}
               </p>
             </div>
@@ -1657,7 +1710,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
                     🔄 Refresh
                   </button>
                 </div>
-                
+
                 {cachedResponses.length === 0 ? (
                   <p className="text-sm text-gray-600">
                     No cached responses yet. Use the AI Assistant while online to generate and cache responses for offline access.
@@ -1709,7 +1762,7 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
                       ✕ Close
                     </button>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <p className="text-xs font-semibold text-gray-600 mb-1">QUESTION:</p>
@@ -1717,22 +1770,22 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
                         {selectedCachedResponse.data.prompt}
                       </p>
                     </div>
-                    
+
                     <div>
                       <p className="text-xs font-semibold text-gray-600 mb-1">CONTEXT:</p>
                       <p className="text-sm text-gray-700">
-                        {selectedCachedResponse.data.context?.replace('-', ' ') || 'General'} • 
+                        {selectedCachedResponse.data.context?.replace('-', ' ') || 'General'} •
                         {selectedCachedResponse.data.profile && ` ${selectedCachedResponse.data.profile.subject} • ${selectedCachedResponse.data.profile.grade}`}
                       </p>
                     </div>
-                    
+
                     <div>
                       <p className="text-xs font-semibold text-gray-600 mb-1">AI RESPONSE:</p>
                       <div className="text-sm text-gray-800 bg-white p-4 rounded whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
                         {selectedCachedResponse.data.response}
                       </div>
                     </div>
-                    
+
                     <div className="text-xs text-gray-500">
                       Cached on: {new Date(selectedCachedResponse.timestamp).toLocaleString()}
                     </div>
@@ -1777,714 +1830,732 @@ const handleRemoveTeacher = async (teacherId, teacherName) => {
           </div>
         )}
         {activeTab === "subscription" && (
-  <div className="max-w-4xl mx-auto">
-    {/* Current Subscription Status */}
-    <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">💳 Subscription Management</h2>
-      
-      {/* Current Plan Display */}
-      <div className={`border-l-4 p-6 rounded-lg mb-6 ${
-        (teacherProfile.subscriptionTier === TIERS.PRO || teacherProfile.subscriptionTier === TIERS.SCHOOL) &&
-        (teacherProfile.subscriptionStatus === STATUS.ACTIVE || teacherProfile.subscriptionStatus === STATUS.TRIAL)
-          ? 'bg-green-50 border-green-500'
-          : 'bg-gray-50 border-gray-300'
-      }`}>
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {getSubscriptionDisplayInfo(
-                teacherProfile.subscriptionTier || TIERS.FREE,
-                teacherProfile.subscriptionStatus || STATUS.ACTIVE
-              ).tierName}
-            </h3>
-            <p className={`text-sm font-semibold ${
-              teacherProfile.subscriptionStatus === STATUS.TRIAL ? 'text-blue-700' :
-              teacherProfile.subscriptionStatus === STATUS.ACTIVE ? 'text-green-700' :
-              'text-gray-600'
-            }`}>
-              Status: {getSubscriptionDisplayInfo(
-                teacherProfile.subscriptionTier || TIERS.FREE,
-                teacherProfile.subscriptionStatus || STATUS.ACTIVE
-              ).statusLabel}
-            </p>
-          </div>
-          
-          {/* Trial Countdown */}
-          {teacherProfile.subscriptionStatus === STATUS.TRIAL && teacherProfile.subscriptionExpiry && (
-            <div className="text-right">
-              <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg">
-                <p className="text-xs font-semibold">Trial Expires In</p>
-                <p className="text-2xl font-bold">
-                  {getDaysRemaining(teacherProfile.subscriptionExpiry)} days
-                </p>
+          <div className="max-w-4xl mx-auto">
+            {/* Current Subscription Status */}
+            <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">💳 Subscription Management</h2>
+
+              {/* Current Plan Display */}
+              <div className={`border-l-4 p-6 rounded-lg mb-6 ${(teacherProfile.subscriptionTier === TIERS.PRO || teacherProfile.subscriptionTier === TIERS.SCHOOL) &&
+                (teacherProfile.subscriptionStatus === STATUS.ACTIVE || teacherProfile.subscriptionStatus === STATUS.TRIAL)
+                ? 'bg-green-50 border-green-500'
+                : 'bg-gray-50 border-gray-300'
+                }`}>
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {getSubscriptionDisplayInfo(
+                        teacherProfile.subscriptionTier || TIERS.FREE,
+                        teacherProfile.subscriptionStatus || STATUS.ACTIVE
+                      ).tierName}
+                    </h3>
+                    <p className={`text-sm font-semibold ${teacherProfile.subscriptionStatus === STATUS.TRIAL ? 'text-blue-700' :
+                      teacherProfile.subscriptionStatus === STATUS.ACTIVE ? 'text-green-700' :
+                        'text-gray-600'
+                      }`}>
+                      Status: {getSubscriptionDisplayInfo(
+                        teacherProfile.subscriptionTier || TIERS.FREE,
+                        teacherProfile.subscriptionStatus || STATUS.ACTIVE
+                      ).statusLabel}
+                    </p>
+                  </div>
+
+                  {/* Trial Countdown */}
+                  {teacherProfile.subscriptionStatus === STATUS.TRIAL && teacherProfile.subscriptionExpiry && (
+                    <div className="text-right">
+                      <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg">
+                        <p className="text-xs font-semibold">Trial Expires In</p>
+                        <p className="text-2xl font-bold">
+                          {getDaysRemaining(teacherProfile.subscriptionExpiry)} days
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Current Plan Features */}
+                <div className="space-y-2 text-sm">
+                  {teacherProfile.subscriptionTier === TIERS.FREE && (
+                    <>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span>10 AI queries per day</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span>Community access</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span>Offline mode</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-400">
+                        <span className="text-gray-400">✗</span>
+                        <span>Student Progress tracking</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-400">
+                        <span className="text-gray-400">✗</span>
+                        <span>Assignment creation tools</span>
+                      </p>
+                    </>
+                  )}
+
+                  {(teacherProfile.subscriptionTier === TIERS.PRO || teacherProfile.subscriptionTier === TIERS.SCHOOL) && (
+                    <>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span><strong>Unlimited</strong> AI queries</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span>Advanced Student Progress tracking</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span>AI-powered Assignment creation</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span>Community access</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span>Offline mode</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-gray-700">
+                        <span className="text-green-600">✓</span>
+                        <span>Priority support</span>
+                      </p>
+                    </>
+                  )}
+                </div>
+                {/* Cancel/Downgrade Button */}
+                <button
+                  onClick={async () => {
+                    if (!confirm('Cancel your current subscription and return to Free tier?\n\nYou will lose access to Pro features immediately.')) {
+                      return;
+                    }
+
+                    try {
+                      const teacherRef = doc(db, "teachers", user.uid);
+                      await setDoc(teacherRef, {
+                        subscriptionTier: TIERS.FREE,
+                        subscriptionStatus: STATUS.ACTIVE,
+                        subscriptionExpiry: null,
+                        updatedAt: new Date().toISOString()
+                      }, { merge: true });
+
+                      alert('✅ Subscription cancelled. You are now on the Free tier.');
+                      window.location.reload();
+                    } catch (error) {
+                      console.error('Error cancelling subscription:', error);
+                      alert('❌ Failed to cancel subscription');
+                    }
+                  }}
+                  className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition"
+                >
+                  Cancel Subscription & Return to Free
+                </button>
+
+
+                {/* Trial Warning */}
+                {teacherProfile.subscriptionStatus === STATUS.TRIAL &&
+                  getDaysRemaining(teacherProfile.subscriptionExpiry) <= 3 && (
+                    <div className="mt-4 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                      <p className="text-sm text-yellow-800 font-semibold">
+                        ⚠️ Your trial expires in {getDaysRemaining(teacherProfile.subscriptionExpiry)} days
+                      </p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Subscribe now to continue enjoying Pro features!
+                      </p>
+                    </div>
+                  )}
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Current Plan Features */}
-        <div className="space-y-2 text-sm">
-          {teacherProfile.subscriptionTier === TIERS.FREE && (
-            <>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span>10 AI queries per day</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span>Community access</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span>Offline mode</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-400">
-                <span className="text-gray-400">✗</span>
-                <span>Student Progress tracking</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-400">
-                <span className="text-gray-400">✗</span>
-                <span>Assignment creation tools</span>
-              </p>
-            </>
-          )}
-          
-          {(teacherProfile.subscriptionTier === TIERS.PRO || teacherProfile.subscriptionTier === TIERS.SCHOOL) && (
-            <>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span><strong>Unlimited</strong> AI queries</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span>Advanced Student Progress tracking</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span>AI-powered Assignment creation</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span>Community access</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span>Offline mode</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-700">
-                <span className="text-green-600">✓</span>
-                <span>Priority support</span>
-              </p>
-            </>
-          )}
-        </div>
-        {/* Cancel/Downgrade Button */}
-        <button
-    onClick={async () => {
-      if (!confirm('Cancel your current subscription and return to Free tier?\n\nYou will lose access to Pro features immediately.')) {
-        return;
-      }
-      
-      try {
-        const teacherRef = doc(db, "teachers", user.uid);
-        await setDoc(teacherRef, {
-          subscriptionTier: TIERS.FREE,
-          subscriptionStatus: STATUS.ACTIVE,
-          subscriptionExpiry: null,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-        
-        alert('✅ Subscription cancelled. You are now on the Free tier.');
-        window.location.reload();
-      } catch (error) {
-        console.error('Error cancelling subscription:', error);
-        alert('❌ Failed to cancel subscription');
-      }
-    }}
-    className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition"
-  >
-    Cancel Subscription & Return to Free
-  </button>
+            {/* Pricing Plans -Always visible*/}
+            {true && (
+              <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">
+                  Upgrade Your Teaching Experience
+                </h3>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
+                  {/* Teacher Pro Plan */}
+                  <div className="border-2 border-[#2e7d32] rounded-xl p-6 relative">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#2e7d32] text-white px-4 py-1 rounded-full text-xs font-bold">
+                      MOST POPULAR
+                    </div>
 
-        {/* Trial Warning */}
-        {teacherProfile.subscriptionStatus === STATUS.TRIAL && 
-         getDaysRemaining(teacherProfile.subscriptionExpiry) <= 3 && (
-          <div className="mt-4 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-            <p className="text-sm text-yellow-800 font-semibold">
-              ⚠️ Your trial expires in {getDaysRemaining(teacherProfile.subscriptionExpiry)} days
-            </p>
-            <p className="text-xs text-yellow-700 mt-1">
-              Subscribe now to continue enjoying Pro features!
-            </p>
+                    <h4 className="text-2xl font-bold text-gray-900 mb-2">Teacher Pro</h4>
+                    <div className="mb-4">
+                      <span className="text-4xl font-bold text-[#2e7d32]">$2</span>
+                      <span className="text-gray-600">/month</span>
+                    </div>
+
+                    <ul className="space-y-3 mb-6 text-sm">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span><strong>Unlimited</strong> AI queries</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Advanced student progress tracking</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>AI-powered assignment creation</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Full community access</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Offline mode with caching</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Priority support</span>
+                      </li>
+                    </ul>
+
+                    {teacherProfile.trialUsed ? (
+                      <button
+                        onClick={async () => {
+                          const phoneNumber = prompt('Enter your M-Pesa phone number (format: 254XXXXXXXXX):');
+
+                          if (!phoneNumber) return;
+
+                          // Validate phone format
+                          if (!/^254\d{9}$/.test(phoneNumber)) {
+                            alert('❌ Invalid phone number format. Use: 254XXXXXXXXX');
+                            return;
+                          }
+
+                          try {
+                            const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
+                            const response = await fetch(`${BACKEND_URL}/api/payment/mpesa/initiate`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                phoneNumber: phoneNumber,
+                                amount: 270, // 270 KES for Teacher Pro
+                                userId: user.uid,
+                                subscriptionTier: 'pro'
+                              })
+                            });
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                              alert(`✅ ${result.message}\n\nTransaction ID: ${result.transactionId}\n\nComplete the payment on your phone.`);
+
+                              // Poll for payment status
+                              const checkPaymentStatus = setInterval(async () => {
+                                const statusResponse = await fetch(`${BACKEND_URL}/api/payment/mpesa/status/${result.transactionId}`);
+                                const statusData = await statusResponse.json();
+
+                                if (statusData.success && statusData.transaction.status === 'completed') {
+                                  clearInterval(checkPaymentStatus);
+                                  alert('🎉 Payment successful! Refreshing your subscription...');
+                                  window.location.reload();
+                                } else if (statusData.transaction.status === 'failed' || statusData.transaction.status === 'cancelled') {
+                                  clearInterval(checkPaymentStatus);
+                                  alert('❌ Payment failed. Please try again.');
+                                }
+                              }, 3000); // Check every 3 seconds
+
+                              // Stop checking after 2 minutes
+                              setTimeout(() => clearInterval(checkPaymentStatus), 120000);
+
+                            } else {
+                              alert('❌ Failed to initiate payment: ' + result.error);
+                            }
+                          } catch (error) {
+                            console.error('Payment error:', error);
+                            alert('❌ Error: ' + error.message);
+                          }
+                        }}
+                        className="w-full bg-[#2e7d32] hover:bg-[#43a047] text-white py-3 rounded-lg font-semibold transition"
+                      >
+                        Upgrade to Pro
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          setIsActivatingTrial(true);
+                          const { startFreeTrial } = await import('../utils/subscriptionHelpers');
+                          const result = await startFreeTrial(user.uid);
+
+                          if (result.success) {
+                            alert('🎉 7-day free trial activated!\n\nYou now have unlimited access to all Pro features.');
+                            // Refresh profile
+                            const teacherRef = doc(db, "teachers", user.uid);
+                            const snap = await getDoc(teacherRef);
+                            if (snap.exists()) {
+                              setTeacherProfile(snap.data());
+                            }
+                          } else {
+                            alert('❌ ' + result.message);
+                          }
+                          setIsActivatingTrial(false);
+                        }}
+                        disabled={isActivatingTrial}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition disabled:bg-gray-400"
+                      >
+                        {isActivatingTrial ? 'Activating...' : '🎁 Start 7-Day Free Trial'}
+                      </button>
+                    )}
+
+                    {!teacherProfile.trialUsed && (
+                      <p className="text-xs text-center text-gray-500 mt-2">
+                        No credit card required • Cancel anytime
+                      </p>
+                    )}
+                  </div>
+
+                  {/* School Plan */}
+                  <div className="border-2 border-gray-300 rounded-xl p-6">
+                    <h4 className="text-2xl font-bold text-gray-900 mb-2">School License</h4>
+                    <div className="mb-4">
+                      <span className="text-4xl font-bold text-[#2e7d32]">$30</span>
+                      <span className="text-gray-600">/year</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">For 20 teachers</p>
+
+                    <ul className="space-y-3 mb-6 text-sm">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>All Pro features for 20 teachers</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Admin dashboard</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Teacher management</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Usage analytics</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Bulk onboarding</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">✓</span>
+                        <span>Priority support</span>
+                      </li>
+                    </ul>
+
+                    <button
+                      onClick={async () => {
+                        const phoneNumber = prompt('Enter M-Pesa phone number for school payment (format: 254XXXXXXXXX):');
+
+                        if (!phoneNumber) return;
+
+                        if (!/^254\d{9}$/.test(phoneNumber)) {
+                          alert('❌ Invalid phone number format. Use: 254XXXXXXXXX');
+                          return;
+                        }
+
+                        try {
+                          const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
+                          const response = await fetch(`${BACKEND_URL}/api/payment/mpesa/initiate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              phoneNumber: phoneNumber,
+                              amount: 4000, // 4000 KES for School License
+                              userId: user.uid,
+                              subscriptionTier: 'school'
+                            })
+                          });
+
+                          const result = await response.json();
+
+                          if (result.success) {
+                            alert(`✅ ${result.message}\n\nTransaction ID: ${result.transactionId}\n\nComplete the payment on your phone.`);
+
+                            const checkPaymentStatus = setInterval(async () => {
+                              const statusResponse = await fetch(`${BACKEND_URL}/api/payment/mpesa/status/${result.transactionId}`);
+                              const statusData = await statusResponse.json();
+
+                              if (statusData.success && statusData.transaction.status === 'completed') {
+                                clearInterval(checkPaymentStatus);
+                                alert('🎉 School license payment successful! Refreshing...');
+                                window.location.reload();
+                              } else if (statusData.transaction.status === 'failed' || statusData.transaction.status === 'cancelled') {
+                                clearInterval(checkPaymentStatus);
+                                alert('❌ Payment failed. Please try again.');
+                              }
+                            }, 3000);
+
+                            setTimeout(() => clearInterval(checkPaymentStatus), 120000);
+
+                          } else {
+                            alert('❌ Failed to initiate payment: ' + result.error);
+                          }
+                        } catch (error) {
+                          console.error('Payment error:', error);
+                          alert('❌ Error: ' + error.message);
+                        }
+                      }}
+                      className="w-full bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg font-semibold transition"
+                    >
+                      Get School License
+                    </button>
+
+                    <p className="text-xs text-center text-gray-500 mt-2">
+                      Only $1.50 per teacher per year
+                    </p>
+                  </div>
+                </div>
+
+                {/* Value Proposition */}
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-[#2e7d32] p-6 rounded-lg">
+                  <h4 className="font-bold text-gray-900 mb-3">💡 Why Upgrade?</h4>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div>
+                      <p className="font-semibold mb-2">Save Time:</p>
+                      <p>Generate lesson plans in minutes, not hours. Create assessments with AI assistance.</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold mb-2">Track Progress:</p>
+                      <p>Monitor student performance and get AI-powered intervention suggestions.</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold mb-2">Culturally Relevant:</p>
+                      <p>Get advice tailored to African curricula and classroom realities.</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold mb-2">Works Offline:</p>
+                      <p>Access cached lessons and resources even without internet.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* M-Pesa Payment Guide */}
+            <div className="bg-white p-6 rounded-xl shadow-lg">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">💳 How to Pay with M-Pesa</h3>
+
+              <div className="space-y-4 text-sm">
+                <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                  <p className="font-semibold text-green-900 mb-2">📱 M-Pesa Payment Steps</p>
+                  <ol className="list-decimal list-inside text-gray-700 space-y-1">
+                    <li>Click "Subscribe" or "Upgrade" button above</li>
+                    <li>Select M-Pesa as your payment method</li>
+                    <li>Enter your M-Pesa phone number</li>
+                    <li>You'll receive an STK push notification on your phone</li>
+                    <li>Enter your M-Pesa PIN to complete payment</li>
+                    <li>You'll receive instant confirmation via SMS</li>
+                  </ol>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-900 mb-1">💰 Accepted Payment Methods</p>
+                  <p className="text-gray-600">
+                    We accept M-Pesa (Safaricom), Airtel Money, and all major credit/debit cards. All payments are processed securely through IntaSend.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-900 mb-1">🔒 Is M-Pesa payment secure?</p>
+                  <p className="text-gray-600">
+                    Yes! All M-Pesa transactions are encrypted and secure. We never store your M-Pesa PIN. Payments are processed directly through Safaricom's secure gateway.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-900 mb-1">⏱️ How long does payment take?</p>
+                  <p className="text-gray-600">
+                    M-Pesa payments are instant! Your account will be upgraded immediately after successful payment. You'll receive confirmation via SMS and email.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-900 mb-1">🔄 What if payment fails?</p>
+                  <p className="text-gray-600">
+                    If your M-Pesa payment fails, check your M-Pesa balance and try again. Common issues: insufficient balance, wrong PIN, or network timeout. Contact support if problems persist.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-900 mb-1">💵 Pricing</p>
+                  <p className="text-gray-600">
+                    <strong>Teacher Pro:</strong> KSh 200/month or KSh 2,000/year (Save 17%)<br />
+                    <strong>School License:</strong> KSh 4,000/month for 20 teachers<br />
+                    All prices include VAT. 7-day free trial available!
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-900 mb-1">↩️ Refund Policy</p>
+                  <p className="text-gray-600">
+                    Not satisfied? Get a full refund within 14 days, no questions asked. M-Pesa refunds are processed within 3-5 business days.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+                <p className="text-sm text-gray-600 mb-3">
+                  Need help with M-Pesa payment? Contact us!
+                </p>
+                <a
+                  href="mailto:support@edubridge.africa"
+                  className="text-[#2e7d32] hover:text-[#43a047] font-semibold"
+                >
+                  support@edubridge.africa
+                </a>
+              </div>
+            </div>
           </div>
         )}
-      </div>
-    </div>
-
-    {/* Pricing Plans -Always visible*/}
-    {true && (
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">
-          Upgrade Your Teaching Experience
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
-          {/* Teacher Pro Plan */}
-          <div className="border-2 border-[#2e7d32] rounded-xl p-6 relative">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#2e7d32] text-white px-4 py-1 rounded-full text-xs font-bold">
-              MOST POPULAR
-            </div>
-            
-            <h4 className="text-2xl font-bold text-gray-900 mb-2">Teacher Pro</h4>
-            <div className="mb-4">
-              <span className="text-4xl font-bold text-[#2e7d32]">$2</span>
-              <span className="text-gray-600">/month</span>
-            </div>
-            
-            <ul className="space-y-3 mb-6 text-sm">
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span><strong>Unlimited</strong> AI queries</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Advanced student progress tracking</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>AI-powered assignment creation</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Full community access</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Offline mode with caching</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Priority support</span>
-              </li>
-            </ul>
-
-            {teacherProfile.trialUsed ? (
-              <button
-  onClick={async () => {
-    const phoneNumber = prompt('Enter your M-Pesa phone number (format: 254XXXXXXXXX):');
-    
-    if (!phoneNumber) return;
-    
-    // Validate phone format
-    if (!/^254\d{9}$/.test(phoneNumber)) {
-      alert('❌ Invalid phone number format. Use: 254XXXXXXXXX');
-      return;
-    }
-    
-    try {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-      
-      const response = await fetch(`${BACKEND_URL}/api/payment/mpesa/initiate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phoneNumber: phoneNumber,
-          amount: 270, // 270 KES for Teacher Pro
-          userId: user.uid,
-          subscriptionTier: 'pro'
-        })
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        alert(`✅ ${result.message}\n\nTransaction ID: ${result.transactionId}\n\nComplete the payment on your phone.`);
-        
-        // Poll for payment status
-        const checkPaymentStatus = setInterval(async () => {
-          const statusResponse = await fetch(`${BACKEND_URL}/api/payment/mpesa/status/${result.transactionId}`);
-          const statusData = await statusResponse.json();
-          
-          if (statusData.success && statusData.transaction.status === 'completed') {
-            clearInterval(checkPaymentStatus);
-            alert('🎉 Payment successful! Refreshing your subscription...');
-            window.location.reload();
-          } else if (statusData.transaction.status === 'failed' || statusData.transaction.status === 'cancelled') {
-            clearInterval(checkPaymentStatus);
-            alert('❌ Payment failed. Please try again.');
-          }
-        }, 3000); // Check every 3 seconds
-        
-        // Stop checking after 2 minutes
-        setTimeout(() => clearInterval(checkPaymentStatus), 120000);
-        
-      } else {
-        alert('❌ Failed to initiate payment: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      alert('❌ Error: ' + error.message);
-    }
-  }}
-  className="w-full bg-[#2e7d32] hover:bg-[#43a047] text-white py-3 rounded-lg font-semibold transition"
->
-  Upgrade to Pro
-</button>
-            ) : (
-              <button
-                onClick={async () => {
-                  setIsActivatingTrial(true);
-                  const { startFreeTrial } = await import('../utils/subscriptionHelpers');
-                  const result = await startFreeTrial(user.uid);
-                  
-                  if (result.success) {
-                    alert('🎉 7-day free trial activated!\n\nYou now have unlimited access to all Pro features.');
-                    // Refresh profile
-                    const teacherRef = doc(db, "teachers", user.uid);
-                    const snap = await getDoc(teacherRef);
-                    if (snap.exists()) {
-                      setTeacherProfile(snap.data());
-                    }
-                  } else {
-                    alert('❌ ' + result.message);
-                  }
-                  setIsActivatingTrial(false);
-                }}
-                disabled={isActivatingTrial}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition disabled:bg-gray-400"
-              >
-                {isActivatingTrial ? 'Activating...' : '🎁 Start 7-Day Free Trial'}
-              </button>
-            )}
-            
-            {!teacherProfile.trialUsed && (
-              <p className="text-xs text-center text-gray-500 mt-2">
-                No credit card required • Cancel anytime
-              </p>
-            )}
-          </div>
-
-          {/* School Plan */}
-          <div className="border-2 border-gray-300 rounded-xl p-6">
-            <h4 className="text-2xl font-bold text-gray-900 mb-2">School License</h4>
-            <div className="mb-4">
-              <span className="text-4xl font-bold text-[#2e7d32]">$30</span>
-              <span className="text-gray-600">/year</span>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">For 20 teachers</p>
-            
-            <ul className="space-y-3 mb-6 text-sm">
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>All Pro features for 20 teachers</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Admin dashboard</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Teacher management</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Usage analytics</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Bulk onboarding</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Priority support</span>
-              </li>
-            </ul>
-
-            <button
-  onClick={async () => {
-    const phoneNumber = prompt('Enter M-Pesa phone number for school payment (format: 254XXXXXXXXX):');
-    
-    if (!phoneNumber) return;
-    
-    if (!/^254\d{9}$/.test(phoneNumber)) {
-      alert('❌ Invalid phone number format. Use: 254XXXXXXXXX');
-      return;
-    }
-    
-    try {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-      
-      const response = await fetch(`${BACKEND_URL}/api/payment/mpesa/initiate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phoneNumber: phoneNumber,
-          amount: 4000, // 4000 KES for School License
-          userId: user.uid,
-          subscriptionTier: 'school'
-        })
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        alert(`✅ ${result.message}\n\nTransaction ID: ${result.transactionId}\n\nComplete the payment on your phone.`);
-        
-        const checkPaymentStatus = setInterval(async () => {
-          const statusResponse = await fetch(`${BACKEND_URL}/api/payment/mpesa/status/${result.transactionId}`);
-          const statusData = await statusResponse.json();
-          
-          if (statusData.success && statusData.transaction.status === 'completed') {
-            clearInterval(checkPaymentStatus);
-            alert('🎉 School license payment successful! Refreshing...');
-            window.location.reload();
-          } else if (statusData.transaction.status === 'failed' || statusData.transaction.status === 'cancelled') {
-            clearInterval(checkPaymentStatus);
-            alert('❌ Payment failed. Please try again.');
-          }
-        }, 3000);
-        
-        setTimeout(() => clearInterval(checkPaymentStatus), 120000);
-        
-      } else {
-        alert('❌ Failed to initiate payment: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      alert('❌ Error: ' + error.message);
-    }
-  }}
-  className="w-full bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg font-semibold transition"
->
-  Get School License
-</button>
-            
-            <p className="text-xs text-center text-gray-500 mt-2">
-              Only $1.50 per teacher per year
-            </p>
-          </div>
-        </div>
-
-        {/* Value Proposition */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-[#2e7d32] p-6 rounded-lg">
-          <h4 className="font-bold text-gray-900 mb-3">💡 Why Upgrade?</h4>
-          <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
-            <div>
-              <p className="font-semibold mb-2">Save Time:</p>
-              <p>Generate lesson plans in minutes, not hours. Create assessments with AI assistance.</p>
-            </div>
-            <div>
-              <p className="font-semibold mb-2">Track Progress:</p>
-              <p>Monitor student performance and get AI-powered intervention suggestions.</p>
-            </div>
-            <div>
-              <p className="font-semibold mb-2">Culturally Relevant:</p>
-              <p>Get advice tailored to African curricula and classroom realities.</p>
-            </div>
-            <div>
-              <p className="font-semibold mb-2">Works Offline:</p>
-              <p>Access cached lessons and resources even without internet.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {/* FAQ Section */}
-    <div className="bg-white p-6 rounded-xl shadow-lg">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Frequently Asked Questions</h3>
-      
-      <div className="space-y-4 text-sm">
-        <div>
-          <p className="font-semibold text-gray-900 mb-1">How do I pay?</p>
-          <p className="text-gray-600">
-            We accept M-Pesa, Airtel Money, and all major cards via IntaSend. Payments are secure and encrypted.
-          </p>
-        </div>
-        
-        <div>
-          <p className="font-semibold text-gray-900 mb-1">Can I cancel anytime?</p>
-          <p className="text-gray-600">
-            Yes! Cancel anytime with no penalties. You'll keep access until the end of your billing period.
-          </p>
-        </div>
-        
-        <div>
-          <p className="font-semibold text-gray-900 mb-1">What happens after the free trial?</p>
-          <p className="text-gray-600">
-            After 7 days, you'll be asked to subscribe. If you don't subscribe, you'll return to the free tier with 10 daily queries.
-          </p>
-        </div>
-        
-        <div>
-          <p className="font-semibold text-gray-900 mb-1">Is my data safe?</p>
-          <p className="text-gray-600">
-            Absolutely. We never sell your data. All information is encrypted and stored securely on Google Firebase.
-          </p>
-        </div>
-
-        <div>
-          <p className="font-semibold text-gray-900 mb-1">Do you offer refunds?</p>
-          <p className="text-gray-600">
-            Yes! If you're not satisfied within the first 14 days, we'll refund your payment, no questions asked.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-        <p className="text-sm text-gray-600 mb-3">
-          Have more questions? We're here to help!
-        </p>
-        <a 
-          href="mailto:support@edubridge.africa" 
-          className="text-[#2e7d32] hover:text-[#43a047] font-semibold"
-        >
-          support@edubridge.africa
-        </a>
-      </div>
-    </div>
-  </div>
-)}
-{activeTab === "school-management" && (
-  <div className="max-w-6xl mx-auto">
-<div className="bg-white p-6 rounded-xl shadow-lg mb-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">🏫 School Management</h2>
-      {teacherProfile.schoolRole !== 'admin' && (
-      <button
-        onClick={async () => {
-  if (!confirm('Grant yourself admin privileges?\n\nThis will create a new school for you to manage.')) return;
-  
-  try {
-    // ✅ Import Timestamp correctly
-    const { Timestamp } = await import('firebase/firestore');
-    const teacherRef = doc(db, "teachers", user.uid);
-    
-    // Generate a unique school ID
-    const schoolId = `school_${user.uid}_${Date.now()}`;
-    
-    // Create school document
-    const schoolRef = doc(db, "schools", schoolId);
-    await setDoc(schoolRef, {
-      name: `${teacherProfile.name}'s School`,
-      adminId: user.uid,
-      adminName: teacherProfile.name,
-      adminEmail: teacherProfile.email || user.email,
-      totalSlots: 20,
-      usedSlots: 1, // Admin counts as first teacher
-      teacherIds: [user.uid], // ✅ ADD THIS - Initialize with admin as first teacher
-      subscriptionStatus: 'inactive', // They need to purchase
-      subscriptionTier: 'school',
-      createdAt: Timestamp.now(), // ✅ Use Timestamp
-      updatedAt: Timestamp.now()  // ✅ Use Timestamp
-      
-    });
-    
-    // Update teacher profile with admin role AND schoolId
-    
-    await setDoc(teacherRef, {
-      schoolRole: 'admin',
-      schoolId: schoolId,
-      subscriptionTier: 'free', // Keep as free until they purchase school license
-     updatedAt: Timestamp.now() // ✅ Use Timestamp
-    }, { merge: true });
-    
-    // Update local state
-    setTeacherProfile(prev => ({ 
-      ...prev, 
-      schoolRole: 'admin',
-      schoolId: schoolId
-    }));
-    
-    alert('✅ Admin privileges granted!\n\n🏫 Your school has been created.\n\nPurchase a School License to activate it.');
-    
-    // Load the school data
-    loadSchoolData();
-    
-  } catch (error) {
-    console.error('Error granting admin:', error);
-    alert('❌ Failed to grant admin privileges: ' + error.message);
-  }
-}}
- className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm"
-      >
-        🔑 Grant Admin Access
-      </button>
-    )}
-    {isLoadingSchool ? (
-        <div className="text-center py-12">
-          <div className="w-12 h-12 border-4 border-[#2e7d32] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading school data...</p>
-        </div>
-      ) : schoolData ? (
-        <>
-          {/* School Overview */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-blue-600 font-semibold">Total Slots</p>
-              <p className="text-3xl font-bold text-blue-800">{schoolStats?.totalSlots || 20}</p>
-            </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-sm text-green-600 font-semibold">Active Teachers</p>
-              <p className="text-3xl font-bold text-green-800">{schoolStats?.usedSlots || 0}</p>
-            </div>
-            
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <p className="text-sm text-orange-600 font-semibold">Available Slots</p>
-              <p className="text-3xl font-bold text-orange-800">{schoolStats?.availableSlots || 0}</p>
-            </div>
-            
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <p className="text-sm text-purple-600 font-semibold">Utilization</p>
-              <p className="text-3xl font-bold text-purple-800">{schoolStats?.utilizationRate || 0}%</p>
-            </div>
-          </div>
-
-          {/* Subscription Status */}
-          <div className={`border-l-4 p-4 rounded-lg mb-6 ${
-            schoolData.subscriptionStatus === 'active' 
-              ? 'bg-green-50 border-green-500' 
-              : 'bg-red-50 border-red-500'
-          }`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-gray-900">School License: {schoolData.name}</p>
-                <p className="text-sm text-gray-600">
-                  Status: <span className={schoolData.subscriptionStatus === 'active' ? 'text-green-700 font-bold' : 'text-red-700 font-bold'}>
-                    {schoolData.subscriptionStatus.toUpperCase()}
-                  </span>
-                </p>
-                {schoolData.subscriptionExpiry && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    Expires: {new Date(schoolData.subscriptionExpiry).toLocaleDateString()} 
-                    ({schoolStats?.daysUntilExpiry} days remaining)
-                  </p>
-                )}
-              </div>
-              
-              {schoolData.subscriptionStatus !== 'active' && (
+        {activeTab === "school-management" && (
+          <div className="max-w-6xl mx-auto">
+            <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">🏫 School Management</h2>
+              {teacherProfile.schoolRole !== 'admin' && (
                 <button
-                  onClick={() => setActiveTab('subscription')}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                  onClick={async () => {
+                    if (!confirm('Grant yourself admin privileges?\n\nThis will create a new school for you to manage.')) return;
+
+                    try {
+                      // ✅ Import Timestamp correctly
+                      const { Timestamp } = await import('firebase/firestore');
+                      const teacherRef = doc(db, "teachers", user.uid);
+
+                      // Generate a unique school ID
+                      const schoolId = `school_${user.uid}_${Date.now()}`;
+
+                      // Create school document
+                      const schoolRef = doc(db, "schools", schoolId);
+                      await setDoc(schoolRef, {
+                        name: `${teacherProfile.name}'s School`,
+                        adminId: user.uid,
+                        adminName: teacherProfile.name,
+                        adminEmail: teacherProfile.email || user.email,
+                        totalSlots: 20,
+                        usedSlots: 1, // Admin counts as first teacher
+                        teacherIds: [user.uid], // ✅ ADD THIS - Initialize with admin as first teacher
+                        subscriptionStatus: 'inactive', // They need to purchase
+                        subscriptionTier: 'school',
+                        createdAt: Timestamp.now(), // ✅ Use Timestamp
+                        updatedAt: Timestamp.now()  // ✅ Use Timestamp
+
+                      });
+
+                      // Update teacher profile with admin role AND schoolId
+
+                      await setDoc(teacherRef, {
+                        schoolRole: 'admin',
+                        schoolId: schoolId,
+                        subscriptionTier: 'free', // Keep as free until they purchase school license
+                        updatedAt: Timestamp.now() // ✅ Use Timestamp
+                      }, { merge: true });
+
+                      // Update local state
+                      setTeacherProfile(prev => ({
+                        ...prev,
+                        schoolRole: 'admin',
+                        schoolId: schoolId
+                      }));
+
+                      alert('✅ Admin privileges granted!\n\n🏫 Your school has been created.\n\nPurchase a School License to activate it.');
+
+                      // Load the school data
+                      loadSchoolData();
+
+                    } catch (error) {
+                      console.error('Error granting admin:', error);
+                      alert('❌ Failed to grant admin privileges: ' + error.message);
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm"
                 >
-                  Renew License
+                  🔑 Grant Admin Access
                 </button>
               )}
-            </div>
-          </div>
+              {isLoadingSchool ? (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 border-4 border-[#2e7d32] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading school data...</p>
+                </div>
+              ) : schoolData ? (
+                <>
+                  {/* School Overview */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm text-blue-600 font-semibold">Total Slots</p>
+                      <p className="text-3xl font-bold text-blue-800">{schoolStats?.totalSlots || 20}</p>
+                    </div>
 
-          {/* Invite Teacher Section */}
-          {schoolStats?.availableSlots > 0 && (
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 p-6 rounded-lg mb-6">
-              <h3 className="font-bold text-gray-900 mb-3">📧 Invite Teachers</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Generate an invite link to add teachers to your school license. 
-                Each teacher will automatically get Pro features.
-              </p>
-              
-              <button
-                onClick={handleGenerateInvite}
-                disabled={isGeneratingInvite}
-               className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base" 
-              >
-                {isGeneratingInvite ? 'Generating...' : '🔗 Generate Invite Link'}
-              </button>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <p className="text-sm text-green-600 font-semibold">Active Teachers</p>
+                      <p className="text-3xl font-bold text-green-800">{schoolStats?.usedSlots || 0}</p>
+                    </div>
 
-              {inviteLink && (
-                <div className="bg-white border border-gray-300 p-4 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-2">Share this link with teachers:</p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={inviteLink}
-                      readOnly
-                      className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm font-mono"
-                    />
-                    <button
-                      onClick={handleCopyInviteLink}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition whitespace-nowrap"
-                    >
-                      📋 Copy
-                    </button>
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                      <p className="text-sm text-orange-600 font-semibold">Available Slots</p>
+                      <p className="text-3xl font-bold text-orange-800">{schoolStats?.availableSlots || 0}</p>
+                    </div>
+
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <p className="text-sm text-purple-600 font-semibold">Utilization</p>
+                      <p className="text-3xl font-bold text-purple-800">{schoolStats?.utilizationRate || 0}%</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-orange-600 mt-2">
-                    ⚠️ Invite link expires in 7 days
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* Teacher List */}
-          <div className="bg-white border border-gray-200 rounded-lg">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="font-bold text-gray-900">👥 Teachers in Your School ({schoolTeachers.length})</h3>
-            </div>
-            
-            <div className="divide-y divide-gray-200">
-              {schoolTeachers.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <p className="text-4xl mb-2">🏫</p>
-                  <p>No teachers yet. Generate an invite link to add teachers!</p>
-                </div>
-              ) : (
-                schoolTeachers.map((teacher) => (
-                  <div key={teacher.id} className="p-4 hover:bg-gray-50 transition">
+                  {/* Subscription Status */}
+                  <div className={`border-l-4 p-4 rounded-lg mb-6 ${schoolData.subscriptionStatus === 'active'
+                    ? 'bg-green-50 border-green-500'
+                    : 'bg-red-50 border-red-500'
+                    }`}>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-[#2e7d32] rounded-full flex items-center justify-center text-white font-bold text-lg">
-                          {teacher.name?.charAt(0)?.toUpperCase() || '?'}
-                        </div>
-                        
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {teacher.name}
-                            {teacher.role === 'admin' && (
-                              <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
-                                ADMIN
-                              </span>
-                            )}
+                      <div>
+                        <p className="font-semibold text-gray-900">School License: {schoolData.name}</p>
+                        <p className="text-sm text-gray-600">
+                          Status: <span className={schoolData.subscriptionStatus === 'active' ? 'text-green-700 font-bold' : 'text-red-700 font-bold'}>
+                            {schoolData.subscriptionStatus.toUpperCase()}
+                          </span>
+                        </p>
+                        {schoolData.subscriptionExpiry && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            Expires: {new Date(schoolData.subscriptionExpiry).toLocaleDateString()}
+                            ({schoolStats?.daysUntilExpiry} days remaining)
                           </p>
-                          <p className="text-sm text-gray-600">{teacher.email}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {teacher.subjectArea} • {teacher.gradeLevel}
-                          </p>
-                        </div>
+                        )}
                       </div>
-                      
-                      {teacher.role !== 'admin' && (
+
+                      {schoolData.subscriptionStatus !== 'active' && (
                         <button
-                          onClick={() => handleRemoveTeacher(teacher.id, teacher.name)}
-                          className="text-red-600 hover:text-red-800 hover:bg-red-50 px-4 py-2 rounded-lg font-medium transition"
+                          onClick={() => setActiveTab('subscription')}
+                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition"
                         >
-                          Remove
+                          Renew License
                         </button>
                       )}
                     </div>
                   </div>
-                ))
+
+                  {/* Invite Teacher Section */}
+                  {schoolStats?.availableSlots > 0 && (
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 p-6 rounded-lg mb-6">
+                      <h3 className="font-bold text-gray-900 mb-3">📧 Invite Teachers</h3>
+                      <p className="text-sm text-gray-700 mb-4">
+                        Generate an invite link to add teachers to your school license.
+                        Each teacher will automatically get Pro features.
+                      </p>
+
+                      <button
+                        onClick={handleGenerateInvite}
+                        disabled={isGeneratingInvite}
+                        className="bg-[#2e7d32] hover:bg-[#43a047] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition text-sm sm:text-base"
+                      >
+                        {isGeneratingInvite ? 'Generating...' : '🔗 Generate Invite Link'}
+                      </button>
+
+                      {inviteLink && (
+                        <div className="bg-white border border-gray-300 p-4 rounded-lg">
+                          <p className="text-xs text-gray-600 mb-2">Share this link with teachers:</p>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={inviteLink}
+                              readOnly
+                              className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm font-mono"
+                            />
+                            <button
+                              onClick={handleCopyInviteLink}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition whitespace-nowrap"
+                            >
+                              📋 Copy
+                            </button>
+                          </div>
+                          <p className="text-xs text-orange-600 mt-2">
+                            ⚠️ Invite link expires in 7 days
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Teacher List */}
+                  <div className="bg-white border border-gray-200 rounded-lg">
+                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                      <h3 className="font-bold text-gray-900">👥 Teachers in Your School ({schoolTeachers.length})</h3>
+                    </div>
+
+                    <div className="divide-y divide-gray-200">
+                      {schoolTeachers.length === 0 ? (
+                        <div className="p-8 text-center text-gray-500">
+                          <p className="text-4xl mb-2">🏫</p>
+                          <p>No teachers yet. Generate an invite link to add teachers!</p>
+                        </div>
+                      ) : (
+                        schoolTeachers.map((teacher) => (
+                          <div key={teacher.id} className="p-4 hover:bg-gray-50 transition">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-[#2e7d32] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                  {teacher.name?.charAt(0)?.toUpperCase() || '?'}
+                                </div>
+
+                                <div>
+                                  <p className="font-semibold text-gray-900">
+                                    {teacher.name}
+                                    {teacher.role === 'admin' && (
+                                      <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
+                                        ADMIN
+                                      </span>
+                                    )}
+                                  </p>
+                                  <p className="text-sm text-gray-600">{teacher.email}</p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {teacher.subjectArea} • {teacher.gradeLevel}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {teacher.role !== 'admin' && (
+                                <button
+                                  onClick={() => handleRemoveTeacher(teacher.id, teacher.name)}
+                                  className="text-red-600 hover:text-red-800 hover:bg-red-50 px-4 py-2 rounded-lg font-medium transition"
+                                >
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12 text-gray-600">
+                  <p className="text-4xl mb-4">⚠️</p>
+                  <p>No school data found. Please contact support.</p>
+                </div>
               )}
             </div>
           </div>
-        </>
-      ) : (
-        <div className="text-center py-12 text-gray-600">
-          <p className="text-4xl mb-4">⚠️</p>
-          <p>No school data found. Please contact support.</p>
-        </div>
-      )}
-    </div>
-  </div>
-)}
+        )}
 
- </main>
+      </main>
       <footer className="bg-white border-t border-gray-200 mt-12 py-6 text-center text-gray-600 text-sm">
         <p className="font-semibold">🌍 EduBridge Africa - Powered by Edubridge AI</p>
         <p className="mt-1">Supporting SDG 4: Quality Education • Curriculum-aware AI for African educators</p>
         <p className="mt-2 text-xs">PWA enabled for offline access • Using AI for contextual educational assistance</p>
       </footer>
-    </div>
+    </div >
   );
 }
 

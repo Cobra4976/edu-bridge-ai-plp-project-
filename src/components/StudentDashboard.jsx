@@ -175,6 +175,7 @@ const [subscriptionTier, setSubscriptionTier] = useState(SUBSCRIPTION_TIERS.FREE
 const [usageSummary, setUsageSummary] = useState(null);
 const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 const [limitReachedMessage, setLimitReachedMessage] = useState('');
+const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // / Add this useEffect to initialize IndexedDB when component mounts
 useEffect(() => {
@@ -1337,9 +1338,9 @@ const handleManualSync = async () => {
       {/* Header */}
       <header className="bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-2xl">🎓</span>
 
  {/* Subscription Modal */}
@@ -1358,7 +1359,7 @@ const handleManualSync = async () => {
 
 {/* Limit Reached Message */}
 {limitReachedMessage && (
-  <div className="fixed bottom-4 right-4 bg-orange-100 border-2 border-orange-400 text-orange-800 px-6 py-4 rounded-lg shadow-lg max-w-md">
+  <div className="fixed bottom-4 right-4 bg-orange-100 border-2 border-orange-400 text-orange-800 px-6 py-4 rounded-lg shadow-lg max-w-md z-50">
     <div className="flex items-start">
       <span className="text-2xl mr-3">⚠️</span>
       <div>
@@ -1370,20 +1371,20 @@ const handleManualSync = async () => {
 )}
 
               </div>
-              <div>
-                <h1 className="text-2xl font-bold">Student Dashboard</h1>
-                <p className="text-green-100 text-sm">{user?.email}</p>
+              <div className="min-w-0">
+                <h1 className="text-xl md:text-2xl font-bold truncate">Student Dashboard</h1>
+                <p className="text-green-100 text-xs md:text-sm truncate">{user?.email}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-2 flex-wrap">
               {/* ADD THIS: Online/Offline indicator */}
-        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
+        <div className={`flex items-center space-x-2 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm ${
           isOnline ? 'bg-green-500/20' : 'bg-red-500/40'
         }`}>
           <div className={`w-2 h-2 rounded-full ${
             isOnline ? 'bg-green-200' : 'bg-red-300'
           } ${isOnline ? 'animate-pulse' : ''}`}></div>
-          <span className="text-sm font-medium">
+          <span className="font-medium whitespace-nowrap">
             {isOnline ? 'Online' : 'Offline'}
           </span>
         </div>
@@ -1391,7 +1392,7 @@ const handleManualSync = async () => {
          {/* Subscription Status */}
        <button
       onClick={() => setShowSubscriptionModal(true)}
-  className={`px-4 py-2 rounded-lg font-medium transition ${
+  className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-sm whitespace-nowrap ${
     subscriptionTier === SUBSCRIPTION_TIERS.PREMIUM
       ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
       : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
@@ -1402,8 +1403,8 @@ const handleManualSync = async () => {
 
         {/* ADD THIS: Sync status and button */}
   {syncStatus.hasPendingOperations && (
-    <div className="bg-yellow-500/20 px-3 py-1 rounded-full">
-      <span className="text-sm font-medium text-yellow-100">
+    <div className="bg-yellow-500/20 px-2 md:px-3 py-1 rounded-full">
+      <span className="text-xs md:text-sm font-medium text-yellow-100 whitespace-nowrap">
         {syncStatus.message}
       </span>
     </div>
@@ -1413,12 +1414,12 @@ const handleManualSync = async () => {
     <button
       onClick={handleManualSync}
       disabled={isSyncing}
-      className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition disabled:opacity-50"
+      className="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition disabled:opacity-50 text-xs md:text-sm whitespace-nowrap"
     >
       {isSyncing ? '🔄 Syncing...' : '🔄 Sync'}
     </button>
   )}
-  <button onClick={onLogout} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
+  <button onClick={onLogout} className="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-xs md:text-sm whitespace-nowrap">
                 Sign Out
               </button>
             </div>
@@ -1428,8 +1429,58 @@ const handleManualSync = async () => {
 
       {/* Navigation Tabs */}
       <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4">
-          <nav className="flex space-x-1 overflow-x-auto">
+        <div className="container mx-auto px-4 sm:px-6">
+          {/* Mobile Hamburger Button */}
+          <div className="md:hidden flex justify-between items-center py-3">
+            <span className="font-bold text-gray-700">Menu</span>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-600 hover:text-green-600 focus:outline-none"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Menu Dropdown */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden flex flex-col space-y-2 pb-4">
+              {[
+                { id: 'overview', label: 'Overview', icon: '📊' },
+                { id: 'profile', label: 'Profile', icon: '👤' },
+                { id: 'tasks', label: 'Tasks', icon: '📝' },
+                { id: 'tutor', label: 'AI Tutor', icon: '🤖' },
+                { id: 'skills', label: 'Skills', icon: '📈' },
+                { id: 'achievements', label: 'Achievements', icon: '🏆' },
+                { id: 'community', label: 'Community', icon: '👥' },
+                { id: 'content', label: 'Offline Content', icon: '📚' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`px-4 py-3 text-left font-medium rounded-lg transition ${
+                    activeTab === tab.id 
+                      ? 'bg-green-50 text-green-700' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="mr-3">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Desktop Tabs (Hidden on Mobile) */}
+          <nav className="hidden md:flex space-x-1 overflow-x-auto scrollbar-hide pb-2 sm:pb-0">
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'profile', label: 'Profile', icon: '👤' },
@@ -1443,7 +1494,7 @@ const handleManualSync = async () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 font-medium transition whitespace-nowrap ${
+                className={`px-3 sm:px-4 py-3 font-medium transition whitespace-nowrap text-sm sm:text-base ${
                   activeTab === tab.id 
                     ? 'border-b-2 border-green-600 text-green-600' 
                     : 'text-gray-600 hover:text-green-600'
@@ -1458,7 +1509,7 @@ const handleManualSync = async () => {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Overview (unchanged) */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
@@ -1466,7 +1517,7 @@ const handleManualSync = async () => {
               Welcome back, {studentProfile?.name || 'Student'}!
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
                 <div className="text-sm font-semibold text-gray-600 mb-1">Country</div>
                 <div className="text-xl font-bold text-gray-800">{studentProfile?.country || 'Not specified'}</div>
@@ -1537,7 +1588,7 @@ const handleManualSync = async () => {
       </button>
     </div>
     
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
       {Object.entries(usageSummary.features).map(([key, data]) => (
         <div key={key} className="bg-white p-3 rounded-lg border border-orange-200">
           <div className="text-xs font-semibold text-gray-600 mb-1">
