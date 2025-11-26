@@ -10,9 +10,16 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore']
+        manualChunks(id) {
+          // Split vendor chunks
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor';
+            }
+            if (id.includes('firebase')) {
+              return 'firebase';
+            }
+          }
         }
       }
     },
