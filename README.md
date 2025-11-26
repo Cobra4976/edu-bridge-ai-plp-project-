@@ -753,17 +753,5 @@ EduBridge AI directly contributes to:
 
 **Built with ❤️ for Africa | Empowering the next generation of African innovators**
 
----
 
-## 🔗 Quick Links
 
-- 🌐 **Live Demo**: [YOUR_VERCEL_LINK_HERE](YOUR_VERCEL_LINK_HERE)
-- 📂 **GitHub**: [YOUR_GITHUB_LINK_HERE](YOUR_GITHUB_LINK_HERE)
-- 📊 **Pitch Deck**: [YOUR_PITCH_DECK_LINK_HERE](YOUR_PITCH_DECK_LINK_HERE)
-- 📧 **Contact**: support@edubridge.africa
-- 💬 **Community**: [WhatsApp Group](LINK_HERE)
-- 📱 **Twitter**: [@EdubridgeAfrica](https://twitter.com/EdubridgeAfrica)
-
----
-
-*Last Updated: January 2025*
